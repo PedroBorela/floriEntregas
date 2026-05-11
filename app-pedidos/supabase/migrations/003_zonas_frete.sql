@@ -7,6 +7,39 @@ CREATE TABLE zonas_frete (
 );
 
 INSERT INTO zonas_frete (nome, bairros, valor) VALUES
+  -- Bairros locais de Manhuaçu
   ('Centro', ARRAY['Centro', 'Santa Terezinha'], 10.00),
   ('Bairros próximos', ARRAY['Coqueiro', 'Engenho da Serra', 'Petrina'], 15.00),
-  ('Distritos', ARRAY['Realeza', 'São Pedro do Avaí'], 25.00);
+  -- Cidades da região (valores do catálogo)
+  ('Reduto', ARRAY['Reduto'], 21.00),
+  ('Realeza', ARRAY['Realeza'], 40.00),
+  ('Vila Nova', ARRAY['Vila Nova'], 48.00),
+  ('Martins Soares', ARRAY['Martins Soares'], 50.00),
+  ('Manhumirim', ARRAY['Manhumirim'], 52.00),
+  ('Durandé', ARRAY['Durandé'], 76.00),
+  ('São Pedro do Avaí', ARRAY['São Pedro do Avaí'], 60.00),
+  ('Luisburgo', ARRAY['Luisburgo'], 75.00),
+  ('Simonésia', ARRAY['Simonésia'], 70.00),
+  ('Santana do Manhuaçu', ARRAY['Santana do Manhuaçu'], 70.00),
+  ('Alto Jequitibá', ARRAY['Alto Jequitibá'], 70.00),
+  ('Vila de Fátima', ARRAY['Vila de Fátima'], 75.00),
+  ('São João do Manhuaçu', ARRAY['São João do Manhuaçu'], 80.00),
+  ('Pequiá', ARRAY['Pequiá'], 85.00),
+  ('Caputira', ARRAY['Caputira'], 85.00),
+  ('São Sebastião de Sacramento', ARRAY['São Sebastião de Sacramento'], 92.00),
+  ('Matipó', ARRAY['Matipó'], 92.00),
+  ('Dom Correa', ARRAY['Dom Correa'], 95.00),
+  ('Santa Margarida', ARRAY['Santa Margarida'], 95.00),
+  ('Alto Caparaó (Velho)', ARRAY['Alto Caparaó (Velho)'], 97.00),
+  ('Orizânia', ARRAY['Orizânia'], 110.00),
+  ('Santa Bárbara do Leste', ARRAY['Santa Bárbara do Leste'], 118.00),
+  ('Santa Filomena', ARRAY['Santa Filomena'], 122.00),
+  ('Lajinha', ARRAY['Lajinha'], 124.00),
+  ('Caparaó', ARRAY['Caparaó'], 128.00),
+  ('Abre Campo', ARRAY['Abre Campo'], 132.00),
+  ('Santa Rita de Minas', ARRAY['Santa Rita de Minas'], 144.00),
+  ('Pedra Bonita', ARRAY['Pedra Bonita'], 148.00),
+  ('Caratinga', ARRAY['Caratinga'], 166.00),
+  ('Ipanema', ARRAY['Ipanema'], 170.00),
+  ('Conceição do Ipanema', ARRAY['Conceição do Ipanema'], 172.00),
+  ('Rio Casca', ARRAY['Rio Casca'], 180.00);

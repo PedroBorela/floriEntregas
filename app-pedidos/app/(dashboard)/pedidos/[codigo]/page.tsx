@@ -6,6 +6,20 @@ import { formatarMoeda, formatarData, formatarDataHora } from '@/lib/formatters'
 import Link from 'next/link'
 import type { Pedido, PedidoItem } from '@/lib/types'
 
+interface ItemDetalhado extends PedidoItem {
+  produtos_catalogo?: { categoria: string | null; imagem_url: string | null } | null
+}
+
+const CORES_CATEGORIA: Record<string, string> = {
+  Vaso:      'bg-green-100 text-green-800',
+  Orquídea:  'bg-purple-100 text-purple-800',
+  Folhagem:  'bg-emerald-100 text-emerald-800',
+  Flor:      'bg-pink-100 text-pink-800',
+  Árvore:    'bg-lime-100 text-lime-800',
+  Corte:     'bg-orange-100 text-orange-800',
+  Especiais: 'bg-yellow-100 text-yellow-800',
+}
+
 interface PageProps {
   params: Promise<{ codigo: string }>
 }
@@ -15,14 +29,14 @@ export default async function DetalhePedidoPage({ params }: PageProps) {
 
   const { data: pedido, error } = await supabase
     .from('pedidos')
-    .select('*, pedido_itens(*)')
+    .select('*, pedido_itens(*, produtos_catalogo(categoria, imagem_url))')
     .eq('codigo', codigo.toUpperCase())
     .single()
 
   if (error || !pedido) notFound()
 
-  const p = pedido as Pedido & { pedido_itens: PedidoItem[] }
-  const itens = p.pedido_itens ?? []
+  const p = pedido as Pedido
+  const itens = (p.pedido_itens ?? []) as ItemDetalhado[]
 
   return (
     <div>
@@ -61,12 +75,21 @@ export default async function DetalhePedidoPage({ params }: PageProps) {
       <div className="section-card">
         <h2 className="section-title">Produtos</h2>
         <div className="space-y-2">
-          {itens.map((item) => (
-            <div key={item.id} className="flex justify-between text-sm">
-              <span className="text-gray-700">{item.quantidade}x {item.nome_produto}</span>
-              <span className="text-gray-600">{formatarMoeda(item.subtotal)}</span>
-            </div>
-          ))}
+          {itens.map((item) => {
+            const cat = item.produtos_catalogo?.categoria
+            const cor = cat ? (CORES_CATEGORIA[cat] ?? 'bg-gray-100 text-gray-700') : null
+            return (
+              <div key={item.id} className="flex justify-between items-center text-sm gap-2">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="text-gray-700 truncate">{item.quantidade}× {item.nome_produto}</span>
+                  {cat && cor && (
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full shrink-0 ${cor}`}>{cat}</span>
+                  )}
+                </div>
+                <span className="text-gray-600 shrink-0">{formatarMoeda(item.subtotal)}</span>
+              </div>
+            )
+          })}
         </div>
         <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between font-semibold">
           <span>Total dos produtos</span>

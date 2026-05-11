@@ -1,3 +1,21 @@
+export const CATEGORIAS_PRODUTO = [
+  'Vaso', 'Orquídea', 'Folhagem', 'Flor', 'Árvore', 'Corte', 'Especiais',
+] as const
+
+export type CategoriaProduto = typeof CATEGORIAS_PRODUTO[number]
+
+export interface ProdutoCatalogo {
+  id: string
+  nome: string
+  preco_padrao: number
+  tamanho: string | null
+  categoria: string | null
+  dica_cuidado: string | null
+  imagem_url: string | null
+  ativo: boolean
+  created_at: string
+}
+
 export type PedidoStatus =
   | 'pendente'
   | 'em_preparo'

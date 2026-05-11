@@ -2,14 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
+import type { ProdutoCatalogo } from '@/lib/types'
 
-export interface ProdutoCatalogo {
-  id: string
-  nome: string
-  preco_padrao: number
-}
+export type { ProdutoCatalogo }
 
-export function useProdutos(termo: string, delay = 300) {
+export function useProdutos(termo: string, categoria?: string | null, delay = 300) {
   const [sugestoes, setSugestoes] = useState<ProdutoCatalogo[]>([])
   const [buscando, setBuscando] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -25,18 +22,24 @@ export function useProdutos(termo: string, delay = 300) {
 
     timer.current = setTimeout(async () => {
       setBuscando(true)
-      const { data } = await supabase
+      let query = supabase
         .from('produtos_catalogo')
-        .select('id, nome, preco_padrao')
+        .select('id, nome, preco_padrao, tamanho, categoria, dica_cuidado, imagem_url, ativo, created_at')
         .ilike('nome', `%${q}%`)
         .eq('ativo', true)
-        .limit(8)
-      setSugestoes(data ?? [])
+        .limit(10)
+
+      if (categoria) {
+        query = query.eq('categoria', categoria)
+      }
+
+      const { data } = await query
+      setSugestoes((data as ProdutoCatalogo[]) ?? [])
       setBuscando(false)
     }, delay)
 
     return () => { if (timer.current) clearTimeout(timer.current) }
-  }, [termo, delay])
+  }, [termo, categoria, delay])
 
   return { sugestoes, buscando }
 }
