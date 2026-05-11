@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import StatusBadge from '@/components/ui/StatusBadge'
 import StatusDropdown from '@/components/pedidos/StatusDropdown'
+import BotaoImprimir from '@/components/impressao/BotaoImprimir'
 import { formatarMoeda, formatarData, formatarDataHora } from '@/lib/formatters'
 import Link from 'next/link'
 import type { Pedido, PedidoItem } from '@/lib/types'
@@ -40,10 +41,13 @@ export default async function DetalhePedidoPage({ params }: PageProps) {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
         <Link href="/pedidos" className="text-gray-400 hover:text-gray-600 text-sm">← Voltar</Link>
         <h1 className="text-xl font-bold text-green-900 font-mono">{p.codigo}</h1>
         <StatusBadge status={p.status} />
+        <div className="ml-auto">
+          <BotaoImprimir pedido={{ ...p, pedido_itens: itens as PedidoItem[] }} />
+        </div>
       </div>
 
       <div className="section-card">
