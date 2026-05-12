@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactElement } from 'react'
 import { formatarMoeda } from '@/lib/formatters'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
@@ -33,7 +33,7 @@ const PAG_COLORS: Record<string, string> = {
   cartao_debito: '#BF360C',
 }
 
-const PAG_ICONS: Record<string, JSX.Element> = {
+const PAG_ICONS: Record<string, ReactElement> = {
   pix: (
     <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
       <path d="M11.9 2C6.4 2 2 6.4 2 11.9s4.4 9.9 9.9 9.9 9.9-4.4 9.9-9.9S17.5 2 11.9 2zm5.5 11.3l-2.8 2.8c-.4.4-1 .6-1.5.6H9.8c-.6 0-1.1-.2-1.5-.6L5.5 13.3c-.8-.8-.8-2.2 0-3l2.8-2.8c.4-.4 1-.6 1.5-.6h3.3c.6 0 1.1.2 1.5.6l2.8 2.8c.8.8.8 2.1 0 3z" />
@@ -67,7 +67,7 @@ function KpiCard({
   value: string
   sub?: string
   accentColor: string
-  icon: JSX.Element
+  icon: ReactElement
 }) {
   return (
     <div
