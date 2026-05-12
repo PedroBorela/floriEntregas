@@ -2,9 +2,25 @@ import { notFound } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import StatusBadge from '@/components/ui/StatusBadge'
 import StatusDropdown from '@/components/pedidos/StatusDropdown'
+import BotaoImprimir from '@/components/impressao/BotaoImprimir'
+import BotaoCopiar from '@/components/ui/BotaoCopiar'
 import { formatarMoeda, formatarData, formatarDataHora } from '@/lib/formatters'
 import Link from 'next/link'
 import type { Pedido, PedidoItem } from '@/lib/types'
+
+interface ItemDetalhado extends PedidoItem {
+  produtos_catalogo?: { categoria: string | null; imagem_url: string | null } | null
+}
+
+const CORES_CATEGORIA: Record<string, string> = {
+  Vaso:      'bg-green-100 text-green-800',
+  Orquídea:  'bg-purple-100 text-purple-800',
+  Folhagem:  'bg-emerald-100 text-emerald-800',
+  Flor:      'bg-pink-100 text-pink-800',
+  Árvore:    'bg-lime-100 text-lime-800',
+  Corte:     'bg-orange-100 text-orange-800',
+  Especiais: 'bg-yellow-100 text-yellow-800',
+}
 
 interface PageProps {
   params: Promise<{ codigo: string }>
@@ -15,21 +31,24 @@ export default async function DetalhePedidoPage({ params }: PageProps) {
 
   const { data: pedido, error } = await supabase
     .from('pedidos')
-    .select('*, pedido_itens(*)')
+    .select('*, pedido_itens(*, produtos_catalogo(categoria, imagem_url))')
     .eq('codigo', codigo.toUpperCase())
     .single()
 
   if (error || !pedido) notFound()
 
-  const p = pedido as Pedido & { pedido_itens: PedidoItem[] }
-  const itens = p.pedido_itens ?? []
+  const p = pedido as Pedido
+  const itens = (p.pedido_itens ?? []) as ItemDetalhado[]
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
         <Link href="/pedidos" className="text-gray-400 hover:text-gray-600 text-sm">← Voltar</Link>
         <h1 className="text-xl font-bold text-green-900 font-mono">{p.codigo}</h1>
         <StatusBadge status={p.status} />
+        <div className="ml-auto">
+          <BotaoImprimir pedido={{ ...p, pedido_itens: itens as PedidoItem[] }} />
+        </div>
       </div>
 
       <div className="section-card">
@@ -61,26 +80,49 @@ export default async function DetalhePedidoPage({ params }: PageProps) {
       <div className="section-card">
         <h2 className="section-title">Produtos</h2>
         <div className="space-y-2">
-          {itens.map((item) => (
-            <div key={item.id} className="flex justify-between text-sm">
-              <span className="text-gray-700">{item.quantidade}x {item.nome_produto}</span>
-              <span className="text-gray-600">{formatarMoeda(item.subtotal)}</span>
-            </div>
-          ))}
+          {itens.map((item) => {
+            const cat = item.produtos_catalogo?.categoria
+            const cor = cat ? (CORES_CATEGORIA[cat] ?? 'bg-gray-100 text-gray-700') : null
+            return (
+              <div key={item.id} className="flex justify-between items-center text-sm gap-2">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="text-gray-700 truncate">{item.quantidade}× {item.nome_produto}</span>
+                  {cat && cor && (
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full shrink-0 ${cor}`}>{cat}</span>
+                  )}
+                </div>
+                <span className="text-gray-600 shrink-0">{formatarMoeda(item.subtotal)}</span>
+              </div>
+            )
+          })}
         </div>
-        <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between font-semibold">
-          <span>Total dos produtos</span>
-          <span>{formatarMoeda(p.valor_produtos)}</span>
-        </div>
-        {p.valor_frete > 0 && (
-          <div className="flex justify-between text-sm text-gray-600 mt-1">
-            <span>Frete</span>
-            <span>{formatarMoeda(p.valor_frete)}</span>
+        <div className="mt-3 pt-3 border-t border-gray-100 space-y-1">
+          <div className="flex justify-between text-sm text-gray-500">
+            <span>Subtotal produtos</span>
+            <span>{formatarMoeda(p.valor_produtos)}</span>
           </div>
-        )}
-        <div className="flex justify-between text-green-900 font-bold text-lg mt-2">
-          <span>Total</span>
-          <span>{formatarMoeda(p.valor_total)}</span>
+          {p.valor_frete > 0 && (
+            <div className="flex justify-between text-sm text-gray-500">
+              <span>Frete</span>
+              <span>{formatarMoeda(p.valor_frete)}</span>
+            </div>
+          )}
+          <div className="flex justify-between text-green-900 font-bold text-lg pt-1 border-t border-gray-100">
+            <span>Total</span>
+            <span>{formatarMoeda(p.valor_total)}</span>
+          </div>
+          {p.pagamento_parcial && (
+            <>
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>Valor pago</span>
+                <span>{formatarMoeda(p.valor_pago)}</span>
+              </div>
+              <div className="flex justify-between text-sm font-semibold text-orange-600">
+                <span>Restante a pagar</span>
+                <span>{formatarMoeda(Math.max(0, p.valor_total - p.valor_pago))}</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -95,24 +137,46 @@ export default async function DetalhePedidoPage({ params }: PageProps) {
 
       <div className="section-card">
         <h2 className="section-title">Pagamento</h2>
-        <div className="flex gap-3 flex-wrap text-sm">
-          <span className={`px-2 py-1 rounded-full ${p.pago ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-700'}`}>
-            {p.pago ? 'Pago' : 'Não pago'}
+        <div className="flex gap-2 flex-wrap text-sm mb-3">
+          <span className={`px-2.5 py-1 rounded-full font-medium ${
+            p.pagamento_parcial
+              ? 'bg-orange-100 text-orange-700'
+              : p.pago
+              ? 'bg-green-100 text-green-800'
+              : 'bg-red-100 text-red-700'
+          }`}>
+            {p.pagamento_parcial ? 'Parcialmente pago' : p.pago ? 'Pago' : 'Não pago'}
           </span>
           {p.pagamento_tipo && (
-            <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-700 capitalize">
-              {p.pagamento_tipo.replace('_', ' ')}
+            <span className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 capitalize">
+              {p.pagamento_tipo.replace(/_/g, ' ')}
             </span>
           )}
-          {p.pagamento_parcial && (
-            <span className="text-gray-500">Pago: {formatarMoeda(p.valor_pago)}</span>
-          )}
         </div>
+        {p.pagamento_parcial && (
+          <div className="rounded-xl bg-orange-50 border border-orange-100 p-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">Total do pedido</span>
+              <span className="font-medium text-gray-700">{formatarMoeda(p.valor_total)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">Valor pago</span>
+              <span className="font-medium text-gray-700">{formatarMoeda(p.valor_pago)}</span>
+            </div>
+            <div className="flex justify-between text-sm font-semibold border-t border-orange-200 pt-2">
+              <span className="text-orange-700">Restante a pagar</span>
+              <span className="text-orange-700">{formatarMoeda(Math.max(0, p.valor_total - p.valor_pago))}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {p.tem_cartao && p.mensagem_cartao && (
         <div className="section-card">
-          <h2 className="section-title">Cartão</h2>
+          <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
+            <h2 className="text-base font-semibold text-green-900">Cartão</h2>
+            <BotaoCopiar texto={p.mensagem_cartao} />
+          </div>
           <p className="text-gray-700 text-sm italic">"{p.mensagem_cartao}"</p>
         </div>
       )}

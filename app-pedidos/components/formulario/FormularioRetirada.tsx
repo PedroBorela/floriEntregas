@@ -35,6 +35,8 @@ export default function FormularioRetirada() {
   const [observacoes, setObservacoes] = useState('')
 
   const valorProdutos = itens.reduce((s, i) => s + i.valor_unitario * i.quantidade, 0)
+  const valorPagoNum = parseFloat(valorPago) || 0
+  const valorRestante = Math.max(0, valorProdutos - valorPagoNum)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -198,7 +200,24 @@ export default function FormularioRetirada() {
             {pago && pagamentoParcial && (
               <div>
                 <label className="form-label">Valor pago</label>
-                <input type="number" className="form-input" placeholder="0,00" min="0" step="0.01" value={valorPago} onChange={(e) => setValorPago(e.target.value)} />
+                <input
+                  type="number"
+                  className="form-input"
+                  placeholder="0,00"
+                  min="0"
+                  max={valorProdutos}
+                  step="0.01"
+                  value={valorPago}
+                  onChange={(e) => setValorPago(e.target.value)}
+                />
+                {valorPago !== '' && (
+                  <div className="mt-2 flex items-center justify-between text-sm rounded-lg px-3 py-2 bg-orange-50 border border-orange-100">
+                    <span className="text-gray-600">Restante a pagar</span>
+                    <span className={`font-semibold ${valorRestante > 0 ? 'text-orange-600' : 'text-green-700'}`}>
+                      {formatarMoeda(valorRestante)}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
             <div>
@@ -219,9 +238,23 @@ export default function FormularioRetirada() {
         </div>
 
         <div className="section-card">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-gray-600 text-sm">Total do pedido</span>
-            <span className="text-xl font-bold text-green-900">{formatarMoeda(valorProdutos)}</span>
+          <div className="space-y-1 mb-4">
+            <div className="flex justify-between font-bold text-green-900 text-xl">
+              <span>Total</span>
+              <span>{formatarMoeda(valorProdutos)}</span>
+            </div>
+            {pago && pagamentoParcial && valorPago !== '' && (
+              <>
+                <div className="flex justify-between text-sm text-gray-500 pt-1 border-t border-gray-100">
+                  <span>Valor pago</span>
+                  <span>{formatarMoeda(valorPagoNum)}</span>
+                </div>
+                <div className="flex justify-between text-sm font-semibold text-orange-600">
+                  <span>Restante a pagar</span>
+                  <span>{formatarMoeda(valorRestante)}</span>
+                </div>
+              </>
+            )}
           </div>
           <button type="submit" disabled={loading} className="btn-primary w-full py-3 text-base">
             {loading ? 'Salvando...' : 'Finalizar Pedido'}

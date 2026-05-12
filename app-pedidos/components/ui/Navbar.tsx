@@ -8,6 +8,8 @@ const tabs = [
   { href: '/entrega', label: 'Entrega' },
   { href: '/retirada', label: 'Retirada' },
   { href: '/pedidos', label: 'Pedidos' },
+  { href: '/catalogo', label: 'Catálogo' },
+  { href: '/analytics', label: 'Analytics' },
 ]
 
 export default function Navbar() {
