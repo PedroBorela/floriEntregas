@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import StatusBadge from '@/components/ui/StatusBadge'
 import StatusDropdown from '@/components/pedidos/StatusDropdown'
 import BotaoImprimir from '@/components/impressao/BotaoImprimir'
+import BotaoCopiar from '@/components/ui/BotaoCopiar'
 import { formatarMoeda, formatarData, formatarDataHora } from '@/lib/formatters'
 import Link from 'next/link'
 import type { Pedido, PedidoItem } from '@/lib/types'
@@ -95,19 +96,33 @@ export default async function DetalhePedidoPage({ params }: PageProps) {
             )
           })}
         </div>
-        <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between font-semibold">
-          <span>Total dos produtos</span>
-          <span>{formatarMoeda(p.valor_produtos)}</span>
-        </div>
-        {p.valor_frete > 0 && (
-          <div className="flex justify-between text-sm text-gray-600 mt-1">
-            <span>Frete</span>
-            <span>{formatarMoeda(p.valor_frete)}</span>
+        <div className="mt-3 pt-3 border-t border-gray-100 space-y-1">
+          <div className="flex justify-between text-sm text-gray-500">
+            <span>Subtotal produtos</span>
+            <span>{formatarMoeda(p.valor_produtos)}</span>
           </div>
-        )}
-        <div className="flex justify-between text-green-900 font-bold text-lg mt-2">
-          <span>Total</span>
-          <span>{formatarMoeda(p.valor_total)}</span>
+          {p.valor_frete > 0 && (
+            <div className="flex justify-between text-sm text-gray-500">
+              <span>Frete</span>
+              <span>{formatarMoeda(p.valor_frete)}</span>
+            </div>
+          )}
+          <div className="flex justify-between text-green-900 font-bold text-lg pt-1 border-t border-gray-100">
+            <span>Total</span>
+            <span>{formatarMoeda(p.valor_total)}</span>
+          </div>
+          {p.pagamento_parcial && (
+            <>
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>Valor pago</span>
+                <span>{formatarMoeda(p.valor_pago)}</span>
+              </div>
+              <div className="flex justify-between text-sm font-semibold text-orange-600">
+                <span>Restante a pagar</span>
+                <span>{formatarMoeda(Math.max(0, p.valor_total - p.valor_pago))}</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -122,24 +137,46 @@ export default async function DetalhePedidoPage({ params }: PageProps) {
 
       <div className="section-card">
         <h2 className="section-title">Pagamento</h2>
-        <div className="flex gap-3 flex-wrap text-sm">
-          <span className={`px-2 py-1 rounded-full ${p.pago ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-700'}`}>
-            {p.pago ? 'Pago' : 'Não pago'}
+        <div className="flex gap-2 flex-wrap text-sm mb-3">
+          <span className={`px-2.5 py-1 rounded-full font-medium ${
+            p.pagamento_parcial
+              ? 'bg-orange-100 text-orange-700'
+              : p.pago
+              ? 'bg-green-100 text-green-800'
+              : 'bg-red-100 text-red-700'
+          }`}>
+            {p.pagamento_parcial ? 'Parcialmente pago' : p.pago ? 'Pago' : 'Não pago'}
           </span>
           {p.pagamento_tipo && (
-            <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-700 capitalize">
-              {p.pagamento_tipo.replace('_', ' ')}
+            <span className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 capitalize">
+              {p.pagamento_tipo.replace(/_/g, ' ')}
             </span>
           )}
-          {p.pagamento_parcial && (
-            <span className="text-gray-500">Pago: {formatarMoeda(p.valor_pago)}</span>
-          )}
         </div>
+        {p.pagamento_parcial && (
+          <div className="rounded-xl bg-orange-50 border border-orange-100 p-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">Total do pedido</span>
+              <span className="font-medium text-gray-700">{formatarMoeda(p.valor_total)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">Valor pago</span>
+              <span className="font-medium text-gray-700">{formatarMoeda(p.valor_pago)}</span>
+            </div>
+            <div className="flex justify-between text-sm font-semibold border-t border-orange-200 pt-2">
+              <span className="text-orange-700">Restante a pagar</span>
+              <span className="text-orange-700">{formatarMoeda(Math.max(0, p.valor_total - p.valor_pago))}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {p.tem_cartao && p.mensagem_cartao && (
         <div className="section-card">
-          <h2 className="section-title">Cartão</h2>
+          <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
+            <h2 className="text-base font-semibold text-green-900">Cartão</h2>
+            <BotaoCopiar texto={p.mensagem_cartao} />
+          </div>
           <p className="text-gray-700 text-sm italic">"{p.mensagem_cartao}"</p>
         </div>
       )}

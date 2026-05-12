@@ -117,6 +117,18 @@ export default function ComandaImpressao({ pedido: p }: Props) {
           <span>TOTAL</span>
           <span>{formatarMoeda(p.valor_total)}</span>
         </div>
+        {p.pagamento_parcial && (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+              <span>Valor pago</span>
+              <span>{formatarMoeda(p.valor_pago)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
+              <span>RESTANTE A PAGAR</span>
+              <span>{formatarMoeda(Math.max(0, p.valor_total - p.valor_pago))}</span>
+            </div>
+          </>
+        )}
       </div>
 
       <div style={{ borderTop: '1px dashed #000', margin: '4px 0' }} />
@@ -124,9 +136,10 @@ export default function ComandaImpressao({ pedido: p }: Props) {
       {/* Pagamento */}
       <div style={{ fontSize: '11px', margin: '3px 0' }}>
         <b>Pagamento: </b>
-        <span style={{ fontWeight: p.pago ? 'bold' : 'normal' }}>{p.pago ? 'PAGO' : 'NÃO PAGO'}</span>
+        <span style={{ fontWeight: p.pago ? 'bold' : 'normal' }}>
+          {p.pagamento_parcial ? 'PARCIAL' : p.pago ? 'PAGO' : 'NÃO PAGO'}
+        </span>
         {p.pagamento_tipo && ` — ${LABELS_PAG[p.pagamento_tipo] ?? p.pagamento_tipo}`}
-        {p.pagamento_parcial && ` (parcial: ${formatarMoeda(p.valor_pago)})`}
       </div>
 
       {/* Cartão */}
