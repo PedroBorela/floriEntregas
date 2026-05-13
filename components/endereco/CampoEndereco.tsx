@@ -7,6 +7,7 @@ import { useFrete } from '@/hooks/useFrete'
 import { formatarMoeda } from '@/lib/formatters'
 
 export interface EnderecoData {
+  endereco_id: string | null
   apelido: string
   cep: string
   logradouro: string
@@ -37,6 +38,7 @@ export interface EnderecoExistente {
 }
 
 export const ENDERECO_VAZIO: EnderecoData = {
+  endereco_id: null,
   apelido: '',
   cep: '',
   logradouro: '',
@@ -110,6 +112,7 @@ export default function CampoEndereco({ value, onChange, enderecosExistentes }: 
     setTermoBusca(end.logradouro)
     onChange({
       ...value,
+      endereco_id: end.id,
       apelido: end.apelido ?? '',
       cep: end.cep ?? '',
       logradouro: end.logradouro,
@@ -134,7 +137,7 @@ export default function CampoEndereco({ value, onChange, enderecosExistentes }: 
       const dados = await buscarCep(digits)
       if (dados) {
         setTermoBusca(dados.logradouro)
-        onChange({ ...value, cep: mascarado, logradouro: dados.logradouro, bairro: dados.bairro, cidade: dados.cidade, estado: dados.estado })
+        onChange({ ...value, endereco_id: null, cep: mascarado, logradouro: dados.logradouro, bairro: dados.bairro, cidade: dados.cidade, estado: dados.estado })
       }
     }
   }
@@ -142,7 +145,7 @@ export default function CampoEndereco({ value, onChange, enderecosExistentes }: 
   function handleLogradouroChange(val: string) {
     setTermoBusca(val)
     setBadgeSelecionadoId(null)
-    onChange({ ...value, logradouro: val })
+    onChange({ ...value, endereco_id: null, logradouro: val })
     setGeocAberto(val.trim().length >= 3)
   }
 
@@ -152,7 +155,7 @@ export default function CampoEndereco({ value, onChange, enderecosExistentes }: 
     const bairroGeo = bairroDisplayName || s.address?.suburb || s.address?.neighbourhood || s.address?.city_district || value.bairro
     setTermoBusca(rua)
     setGeocAberto(false)
-    onChange({ ...value, logradouro: rua, bairro: bairroGeo, latitude: parseFloat(s.lat), longitude: parseFloat(s.lon) })
+    onChange({ ...value, endereco_id: null, logradouro: rua, bairro: bairroGeo, latitude: parseFloat(s.lat), longitude: parseFloat(s.lon) })
   }
 
   function set(field: keyof EnderecoData, val: string | number | null) {

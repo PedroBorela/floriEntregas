@@ -164,6 +164,32 @@ export default function ClientePerfilPage() {
         )}
       </div>
 
+      {/* Endereços de entrega */}
+      {((cliente as any).enderecos ?? []).length > 0 && (
+        <div className="section-card">
+          <h2 className="section-title">Endereços de entrega</h2>
+          <div className="divide-y divide-gray-100">
+            {((cliente as any).enderecos as any[]).map((end) => (
+              <div key={end.id} className="py-2.5 first:pt-0 last:pb-0">
+                {end.apelido && (
+                  <p className="text-sm font-medium text-green-800">{end.apelido}</p>
+                )}
+                <p className="text-sm text-gray-700">
+                  {end.logradouro}{end.numero ? `, ${end.numero}` : ''}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {end.bairro} — {end.cidade}/{end.estado}
+                  {end.cep ? ` · CEP ${end.cep}` : ''}
+                </p>
+                {end.referencia && (
+                  <p className="text-xs text-gray-400 mt-0.5">Ref: {end.referencia}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Datas especiais */}
       <div className="section-card">
         <h2 className="section-title">Datas especiais</h2>

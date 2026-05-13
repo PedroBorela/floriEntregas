@@ -17,9 +17,15 @@ export async function POST(req: NextRequest) {
 
   if (clienteError) return NextResponse.json({ error: clienteError.message }, { status: 400 })
 
-  // 2. criar endereco (entregas com logradouro)
-  let endereco_id: string | null = null
-  if (pedidoData.logradouro) {
+  // 2. usar endereco existente ou criar novo
+  let endereco_id: string | null = pedidoData.endereco_id ?? null
+  if (endereco_id) {
+    // atualiza apenas o apelido no endereço existente
+    await supabase
+      .from('enderecos')
+      .update({ apelido: pedidoData.endereco_apelido ?? null })
+      .eq('id', endereco_id)
+  } else if (pedidoData.logradouro) {
     const { data: endereco } = await supabase
       .from('enderecos')
       .insert({

@@ -99,6 +99,7 @@ export default function FormularioEntrega() {
         cliente_telefone: clienteTelefone,
         destinatario_nome: ePresente ? (destinatarioNome || null) : null,
         destinatario_telefone: ePresente ? (destinatarioTelefone || null) : null,
+        endereco_id: endereco.endereco_id || null,
         cep: endereco.cep || null,
         endereco_apelido: endereco.apelido || null,
         logradouro: endereco.logradouro || null,

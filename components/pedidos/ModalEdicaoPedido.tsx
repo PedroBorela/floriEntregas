@@ -47,6 +47,7 @@ export default function ModalEdicaoPedido({ pedido, open, onClose, onSalvo }: Pr
   )
 
   const [endereco, setEndereco] = useState<EnderecoData>({
+    endereco_id: (pedido as any).endereco_id ?? null,
     apelido: (pedido as any).endereco_apelido ?? '',
     cep: pedido.cep ?? '',
     logradouro: pedido.logradouro ?? '',
