@@ -186,12 +186,10 @@ export default function FormularioEntrega() {
             onTelefoneChange={setClienteTelefone}
             onClienteSelect={handleClienteSelect}
           />
-          {clienteNome.trim() && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <p className="text-sm font-medium text-gray-700 mb-2">Datas especiais do cliente</p>
-              <DatasEspeciais clienteId={clienteId} datas={clienteDatas} onChange={setClienteDatas} />
-            </div>
-          )}
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <p className="text-sm font-medium text-gray-700 mb-2">Datas especiais do cliente</p>
+            <DatasEspeciais clienteId={clienteId} datas={clienteDatas} onChange={setClienteDatas} />
+          </div>
         </div>
 
         <div className="section-card">
