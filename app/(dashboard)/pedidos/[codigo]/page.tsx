@@ -7,6 +7,7 @@ import BotaoCopiar from '@/components/ui/BotaoCopiar'
 import BotaoCancelar from '@/components/pedidos/BotaoCancelar'
 import BotaoEditar from '@/components/pedidos/BotaoEditar'
 import BotaoWhatsApp from '@/components/pedidos/BotaoWhatsApp'
+import BotaoExcluirPedido from '@/components/pedidos/BotaoExcluirPedido'
 import { formatarMoeda, formatarData, formatarDataHora } from '@/lib/formatters'
 import Link from 'next/link'
 import type { Pedido, PedidoItem } from '@/lib/types'
@@ -84,6 +85,7 @@ export default async function DetalhePedidoPage({ params, searchParams }: PagePr
           <BotaoEditar pedido={p as Pedido} />
           <BotaoCancelar pedidoId={p.id} codigo={p.codigo} status={p.status} />
           <BotaoImprimir pedido={{ ...p, pedido_itens: itens as PedidoItem[] }} />
+          <BotaoExcluirPedido pedidoId={p.id} codigo={p.codigo} />
         </div>
       </div>
 
