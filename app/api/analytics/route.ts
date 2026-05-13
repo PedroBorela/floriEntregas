@@ -10,7 +10,7 @@ export async function GET(req: Request) {
 
   const { data: pedidos } = await supabase
     .from('pedidos')
-    .select('id, valor_total, tipo, pagamento_tipo, pago, pagamento_parcial, valor_pago, status, created_at, data_entrega, cliente_id, cliente_nome')
+    .select('id, valor_total, tipo, status, created_at, data_entrega, cliente_id, cliente_nome, pagamentos(pago, parcial, valor_pago, tipo)')
     .neq('status', 'cancelado')
     .gte('created_at', desde.toISOString())
 
@@ -40,9 +40,10 @@ export async function GET(req: Request) {
   const pedidos_hoje = pedidos.filter((p) => (p.data_entrega ?? (p.created_at as string).slice(0, 10)) === hoje).length
 
   const a_receber = pedidos.reduce((s, p) => {
-    if (p.pago) return s
+    const pag = Array.isArray(p.pagamentos) ? p.pagamentos[0] : null
+    if (pag?.pago) return s
     const total = parseFloat(String(p.valor_total ?? 0))
-    const pago = p.pagamento_parcial ? parseFloat(String(p.valor_pago ?? 0)) : 0
+    const pago = pag?.parcial ? parseFloat(String(pag.valor_pago ?? 0)) : 0
     return s + (total - pago)
   }, 0)
 
@@ -72,7 +73,8 @@ export async function GET(req: Request) {
 
   const pagMap = new Map<string, number>()
   for (const p of pedidos) {
-    if (p.pagamento_tipo) pagMap.set(p.pagamento_tipo, (pagMap.get(p.pagamento_tipo) ?? 0) + 1)
+    const tipo = Array.isArray(p.pagamentos) ? p.pagamentos[0]?.tipo : null
+    if (tipo) pagMap.set(tipo, (pagMap.get(tipo) ?? 0) + 1)
   }
   const pagamentos = [...pagMap.entries()]
     .sort((a, b) => b[1] - a[1])
