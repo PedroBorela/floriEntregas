@@ -4,9 +4,10 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import CampoProdutos, { type ItemPedido } from './CampoProdutos'
 import CampoCliente from './CampoCliente'
+import DatasEspeciais from '@/components/clientes/DatasEspeciais'
 import Modal from '@/components/ui/Modal'
 import { formatarMoeda } from '@/lib/formatters'
-import type { PagamentoTipo } from '@/lib/types'
+import type { PagamentoTipo, ClienteData } from '@/lib/types'
 
 const hoje = new Date().toISOString().split('T')[0]
 
@@ -24,6 +25,8 @@ export default function FormularioRetirada() {
 
   const [clienteNome, setClienteNome] = useState('')
   const [clienteTelefone, setClienteTelefone] = useState('')
+  const [clienteId, setClienteId] = useState<string | null>(null)
+  const [clienteDatas, setClienteDatas] = useState<ClienteData[]>([])
   const [nomeRetirada, setNomeRetirada] = useState('')
   const [telefoneRetirada, setTelefoneRetirada] = useState('')
 
@@ -91,9 +94,23 @@ export default function FormularioRetirada() {
     }
   }
 
+  async function handleClienteSelect(id: string | null) {
+    setClienteId(id)
+    setClienteDatas([])
+    if (id) {
+      const res = await fetch(`/api/clientes/${id}`)
+      if (res.ok) {
+        const json = await res.json()
+        setClienteDatas(json.cliente.cliente_datas ?? [])
+      }
+    }
+  }
+
   function resetForm() {
     setClienteNome('')
     setClienteTelefone('')
+    setClienteId(null)
+    setClienteDatas([])
     setNomeRetirada('')
     setTelefoneRetirada('')
     setItens([{ nome_produto: '', valor_unitario: 0, quantidade: 1 }])
@@ -120,7 +137,14 @@ export default function FormularioRetirada() {
             telefone={clienteTelefone}
             onNomeChange={setClienteNome}
             onTelefoneChange={setClienteTelefone}
+            onClienteSelect={handleClienteSelect}
           />
+          {clienteId && (
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <p className="text-sm font-medium text-gray-700 mb-2">Datas especiais do cliente</p>
+              <DatasEspeciais clienteId={clienteId} datas={clienteDatas} onChange={setClienteDatas} />
+            </div>
+          )}
         </div>
 
         <div className="section-card">

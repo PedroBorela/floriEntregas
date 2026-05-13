@@ -13,9 +13,10 @@ interface Props {
   telefone: string
   onNomeChange: (v: string) => void
   onTelefoneChange: (v: string) => void
+  onClienteSelect?: (id: string | null) => void
 }
 
-export default function CampoCliente({ nome, telefone, onNomeChange, onTelefoneChange }: Props) {
+export default function CampoCliente({ nome, telefone, onNomeChange, onTelefoneChange, onClienteSelect }: Props) {
   const [sugestoes, setSugestoes] = useState<ClienteSugestao[]>([])
   const [aberto, setAberto] = useState(false)
   const [buscando, setBuscando] = useState(false)
@@ -56,6 +57,7 @@ export default function CampoCliente({ nome, telefone, onNomeChange, onTelefoneC
   function selecionarCliente(c: ClienteSugestao) {
     onNomeChange(c.nome)
     onTelefoneChange(c.telefone)
+    onClienteSelect?.(c.id)
     setSugestoes([])
     setAberto(false)
   }
@@ -72,6 +74,7 @@ export default function CampoCliente({ nome, telefone, onNomeChange, onTelefoneC
           required
           onChange={(e) => {
             onNomeChange(e.target.value)
+            onClienteSelect?.(null)
             disparaBusca(e.target.value)
           }}
           onFocus={() => { if (sugestoes.length > 0) setAberto(true) }}
