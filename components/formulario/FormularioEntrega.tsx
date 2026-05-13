@@ -32,6 +32,7 @@ export default function FormularioEntrega() {
   const [janelaEntrega, setJanelaEntrega] = useState('tarde')
   const [horarioLivre, setHorarioLivre] = useState('')
 
+  const [ePresente, setEPresente] = useState(false)
   const [destinatarioNome, setDestinatarioNome] = useState('')
   const [destinatarioTelefone, setDestinatarioTelefone] = useState('')
   const [endereco, setEndereco] = useState<EnderecoData>(ENDERECO_VAZIO)
@@ -68,8 +69,8 @@ export default function FormularioEntrega() {
         tipo: 'entrega',
         cliente_nome: clienteNome,
         cliente_telefone: clienteTelefone,
-        destinatario_nome: destinatarioNome || null,
-        destinatario_telefone: destinatarioTelefone || null,
+        destinatario_nome: ePresente ? (destinatarioNome || null) : null,
+        destinatario_telefone: ePresente ? (destinatarioTelefone || null) : null,
         cep: endereco.cep || null,
         logradouro: endereco.logradouro || null,
         numero: endereco.numero || null,
@@ -113,6 +114,7 @@ export default function FormularioEntrega() {
     setDataEntrega(hoje)
     setJanelaEntrega('tarde')
     setHorarioLivre('')
+    setEPresente(false)
     setDestinatarioNome('')
     setDestinatarioTelefone('')
     setEndereco(ENDERECO_VAZIO)
@@ -176,17 +178,31 @@ export default function FormularioEntrega() {
         </div>
 
         <div className="section-card">
-          <h2 className="section-title">Destinatário</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2 sm:col-span-1">
-              <label className="form-label">Nome de quem vai receber</label>
-              <input className="form-input" placeholder="Nome do destinatário" value={destinatarioNome} onChange={(e) => setDestinatarioNome(e.target.value)} />
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={ePresente}
+              onChange={(e) => {
+                setEPresente(e.target.checked)
+                if (!e.target.checked) { setDestinatarioNome(''); setDestinatarioTelefone('') }
+              }}
+              className="w-4 h-4 accent-green-800"
+            />
+            <span className="text-sm font-medium text-gray-700">Este pedido é um presente?</span>
+            <span className="text-xs text-gray-400">(destinatário diferente do comprador)</span>
+          </label>
+          {ePresente && (
+            <div className="grid grid-cols-2 gap-4 mt-3">
+              <div className="col-span-2 sm:col-span-1">
+                <label className="form-label">Nome de quem vai receber</label>
+                <input className="form-input" placeholder="Nome do destinatário" value={destinatarioNome} onChange={(e) => setDestinatarioNome(e.target.value)} />
+              </div>
+              <div className="col-span-2 sm:col-span-1">
+                <label className="form-label">Telefone de quem vai receber</label>
+                <input className="form-input" placeholder="(35) 99999-9999" value={destinatarioTelefone} onChange={(e) => setDestinatarioTelefone(e.target.value)} />
+              </div>
             </div>
-            <div className="col-span-2 sm:col-span-1">
-              <label className="form-label">Telefone de quem vai receber</label>
-              <input className="form-input" placeholder="(35) 99999-9999" value={destinatarioTelefone} onChange={(e) => setDestinatarioTelefone(e.target.value)} />
-            </div>
-          </div>
+          )}
         </div>
 
         <div className="section-card">

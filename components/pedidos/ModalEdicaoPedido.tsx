@@ -33,6 +33,7 @@ export default function ModalEdicaoPedido({ pedido, open, onClose, onSalvo }: Pr
 
   const [clienteNome, setClienteNome] = useState(pedido.cliente_nome)
   const [clienteTelefone, setClienteTelefone] = useState(pedido.cliente_telefone)
+  const [ePresente, setEPresente] = useState(!!pedido.destinatario_nome)
   const [destinatarioNome, setDestinatarioNome] = useState(pedido.destinatario_nome ?? '')
   const [destinatarioTelefone, setDestinatarioTelefone] = useState(pedido.destinatario_telefone ?? '')
 
@@ -98,8 +99,8 @@ export default function ModalEdicaoPedido({ pedido, open, onClose, onSalvo }: Pr
         acao: 'editar',
         cliente_nome: clienteNome,
         cliente_telefone: clienteTelefone,
-        destinatario_nome: destinatarioNome || null,
-        destinatario_telefone: destinatarioTelefone || null,
+        destinatario_nome: ePresente ? (destinatarioNome || null) : null,
+        destinatario_telefone: ePresente ? (destinatarioTelefone || null) : null,
         cep: endereco.cep || null,
         logradouro: endereco.logradouro || null,
         numero: endereco.numero || null,
@@ -153,15 +154,31 @@ export default function ModalEdicaoPedido({ pedido, open, onClose, onSalvo }: Pr
 
         {/* Destinatário */}
         {pedido.tipo === 'entrega' && (
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="form-label">Destinatário</label>
-              <input className="form-input" value={destinatarioNome} onChange={(e) => setDestinatarioNome(e.target.value)} />
-            </div>
-            <div>
-              <label className="form-label">Tel. destinatário</label>
-              <input className="form-input" value={destinatarioTelefone} onChange={(e) => setDestinatarioTelefone(e.target.value)} />
-            </div>
+          <div>
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={ePresente}
+                onChange={(e) => {
+                  setEPresente(e.target.checked)
+                  if (!e.target.checked) { setDestinatarioNome(''); setDestinatarioTelefone('') }
+                }}
+                className="w-4 h-4 accent-green-800"
+              />
+              <span className="text-sm text-gray-700">Este pedido é um presente?</span>
+            </label>
+            {ePresente && (
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                <div>
+                  <label className="form-label">Destinatário</label>
+                  <input className="form-input" value={destinatarioNome} onChange={(e) => setDestinatarioNome(e.target.value)} />
+                </div>
+                <div>
+                  <label className="form-label">Tel. destinatário</label>
+                  <input className="form-input" value={destinatarioTelefone} onChange={(e) => setDestinatarioTelefone(e.target.value)} />
+                </div>
+              </div>
+            )}
           </div>
         )}
 

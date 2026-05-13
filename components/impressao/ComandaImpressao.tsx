@@ -51,10 +51,19 @@ export default function ComandaImpressao({ pedido: p }: Props) {
         </div>
       )}
 
-      {/* Cliente */}
+      {/* Cliente / Destinatário */}
       <div style={{ margin: '3px 0', fontSize: '11px' }}>
-        <div><b>Cliente: </b>{p.cliente_nome}</div>
-        <div><b>Tel: </b>{p.cliente_telefone}</div>
+        {p.destinatario_nome ? (
+          <>
+            <div><b>De (comprador): </b>{p.cliente_nome}</div>
+            <div><b>Tel comprador: </b>{p.cliente_telefone}</div>
+          </>
+        ) : (
+          <>
+            <div><b>Cliente: </b>{p.cliente_nome}</div>
+            <div><b>Tel: </b>{p.cliente_telefone}</div>
+          </>
+        )}
       </div>
 
       {/* Destinatário e endereço */}
@@ -62,8 +71,8 @@ export default function ComandaImpressao({ pedido: p }: Props) {
         <>
           <div style={{ borderTop: '1px dashed #000', margin: '4px 0' }} />
           <div style={{ margin: '3px 0', fontSize: '11px' }}>
-            {p.destinatario_nome && <div><b>Para: </b>{p.destinatario_nome}</div>}
-            {p.destinatario_telefone && <div><b>Tel: </b>{p.destinatario_telefone}</div>}
+            {p.destinatario_nome && <div><b>Para (destinatário): </b>{p.destinatario_nome}</div>}
+            {p.destinatario_telefone && <div><b>Tel destinatário: </b>{p.destinatario_telefone}</div>}
             {p.logradouro && (
               <div style={{ marginTop: '2px' }}>
                 <b>End: </b>
