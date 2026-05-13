@@ -85,7 +85,7 @@ export default function BotaoImprimir({ pedido }: Props) {
       {/* Layout da comanda — invisível na tela, visível só ao imprimir */}
       <div className="hidden">
         <div ref={ref}>
-          <ComandaImpressao pedido={{ ...pedido, impresso, impresso_em: impressoEm }} />
+          <ComandaImpressao pedido={{ ...pedido, impresso, impresso_em: impressoEm }} baseUrl={typeof window !== 'undefined' ? window.location.origin : ''} />
         </div>
       </div>
     </>

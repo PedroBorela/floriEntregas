@@ -11,9 +11,10 @@ const LABELS_PAG: Record<string, string> = {
 
 interface Props {
   pedido: Pedido & { pedido_itens: PedidoItem[] }
+  baseUrl: string
 }
 
-export default function ComandaImpressao({ pedido: p }: Props) {
+export default function ComandaImpressao({ pedido: p, baseUrl }: Props) {
   const itens = p.pedido_itens ?? []
 
   return (
@@ -37,7 +38,7 @@ export default function ComandaImpressao({ pedido: p }: Props) {
 
       {/* QR Code */}
       <div style={{ textAlign: 'center', margin: '4px 0 8px' }}>
-        <QRCodeSVG value={p.codigo} size={80} />
+        <QRCodeSVG value={`${baseUrl}/p/${p.codigo}`} size={80} />
       </div>
 
       <div style={{ borderTop: '1px solid #000', margin: '4px 0' }} />
