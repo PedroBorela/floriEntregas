@@ -42,30 +42,32 @@ export default function DatasEspeciaisInput({ value, onChange }: Props) {
               </button>
             ))}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
-              className="form-input flex-1"
+              className="form-input"
               placeholder="Nome da data"
               value={d.nome}
               onChange={(e) => atualizar(idx, 'nome', e.target.value)}
             />
-            <input
-              type="date"
-              className="form-input w-40 shrink-0"
-              value={d.data}
-              onChange={(e) => atualizar(idx, 'data', e.target.value)}
-            />
-            {value.length > 1 && (
-              <button
-                type="button"
-                onClick={() => remover(idx)}
-                className="text-gray-300 hover:text-red-400 transition text-xl leading-none px-1"
-                aria-label="Remover"
-              >
-                ×
-              </button>
-            )}
+            <div className="flex gap-2">
+              <input
+                type="date"
+                className="form-input sm:w-40 sm:shrink-0"
+                value={d.data}
+                onChange={(e) => atualizar(idx, 'data', e.target.value)}
+              />
+              {value.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => remover(idx)}
+                  className="text-gray-300 hover:text-red-400 transition text-xl leading-none px-1 shrink-0"
+                  aria-label="Remover"
+                >
+                  ×
+                </button>
+              )}
+            </div>
           </div>
         </div>
       ))}
