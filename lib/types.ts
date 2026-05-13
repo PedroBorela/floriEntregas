@@ -29,11 +29,23 @@ export type PedidoTipo = 'entrega' | 'retirada'
 
 export type PagamentoTipo = 'pix' | 'dinheiro' | 'cartao_credito' | 'cartao_debito'
 
+export interface ClienteData {
+  id: string
+  cliente_id: string
+  nome: string
+  data: string   // ISO date: YYYY-MM-DD
+  created_at: string
+}
+
 export interface Cliente {
   id: string
   nome: string
   telefone: string
+  whatsapp: string | null
+  preferencias: string | null
+  observacoes: string | null
   created_at: string
+  cliente_datas?: ClienteData[]
 }
 
 export interface PedidoItem {
@@ -90,6 +102,12 @@ export interface Pedido {
   impresso: boolean
   impresso_em: string | null
   observacoes: string | null
+  motivo_cancelamento: string | null
+
+  whatsapp_confirmacao_enviado: boolean
+  whatsapp_confirmacao_em: string | null
+  whatsapp_saiu_enviado: boolean
+  whatsapp_saiu_em: string | null
 
   created_at: string
   updated_at: string

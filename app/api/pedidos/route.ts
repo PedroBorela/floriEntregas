@@ -52,8 +52,11 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const codigo = searchParams.get('codigo')
+  const busca = searchParams.get('busca')       // nome ou telefone do cliente
   const status = searchParams.get('status')
   const data = searchParams.get('data')
+  const dataInicio = searchParams.get('dataInicio')
+  const dataFim = searchParams.get('dataFim')
   const tipo = searchParams.get('tipo')
   const page = parseInt(searchParams.get('page') ?? '1')
   const pageSize = 20
@@ -65,8 +68,13 @@ export async function GET(req: NextRequest) {
     .range((page - 1) * pageSize, page * pageSize - 1)
 
   if (codigo) query = query.ilike('codigo', `%${codigo}%`)
+  if (busca) {
+    query = query.or(`cliente_nome.ilike.%${busca}%,cliente_telefone.ilike.%${busca}%`)
+  }
   if (status) query = query.eq('status', status)
   if (data) query = query.eq('data_entrega', data)
+  if (dataInicio) query = query.gte('data_entrega', dataInicio)
+  if (dataFim) query = query.lte('data_entrega', dataFim)
   if (tipo) query = query.eq('tipo', tipo)
 
   const { data: pedidos, error, count } = await query

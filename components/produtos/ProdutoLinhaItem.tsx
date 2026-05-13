@@ -66,12 +66,12 @@ export default function ProdutoLinhaItem({ item, onChange, onRemove, podRemover,
   const subtotal = item.valor_unitario * item.quantidade
 
   return (
-    <div className="flex gap-2 items-start">
-      {/* Nome / autocomplete */}
-      <div className="flex-1 relative" ref={wrapRef}>
+    <div className="flex flex-col md:flex-row gap-2 md:items-center">
+      {/* Nome / autocomplete (largura total no mobile, flex-1 no desktop) */}
+      <div className="relative flex-1" ref={wrapRef}>
         <input
           type="text"
-          className="form-input pr-16"
+          className="form-input w-full pr-16"
           placeholder="Nome do produto"
           value={termoBusca}
           onChange={(e) => handleNomeChange(e.target.value)}
@@ -95,7 +95,6 @@ export default function ProdutoLinhaItem({ item, onChange, onRemove, podRemover,
                   className="flex items-center gap-2 px-3 py-2 hover:bg-green-50 cursor-pointer"
                   onMouseDown={(e) => { e.preventDefault(); selecionarSugestao(s.nome, s.preco_padrao, s.tamanho) }}
                 >
-                  {/* Miniatura */}
                   <div className="w-8 h-8 rounded shrink-0 bg-gray-100 overflow-hidden flex items-center justify-center">
                     <img
                       src={s.imagem_url ?? ''}
@@ -104,8 +103,6 @@ export default function ProdutoLinhaItem({ item, onChange, onRemove, podRemover,
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
                     />
                   </div>
-
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="font-medium text-gray-900 truncate">{s.nome}</span>
@@ -119,8 +116,6 @@ export default function ProdutoLinhaItem({ item, onChange, onRemove, podRemover,
                       </span>
                     )}
                   </div>
-
-                  {/* Preço */}
                   <span className="text-green-700 font-semibold ml-2 shrink-0">{formatarMoeda(s.preco_padrao)}</span>
                 </li>
               )
@@ -132,53 +127,56 @@ export default function ProdutoLinhaItem({ item, onChange, onRemove, podRemover,
         )}
       </div>
 
-      {/* Valor unitário */}
-      <div className="w-24">
-        <input
-          type="number"
-          className="form-input"
-          placeholder="R$ 0"
-          min="0"
-          step="0.01"
-          value={item.valor_unitario || ''}
-          onChange={(e) => handlePrecoChange(e.target.value)}
-        />
-      </div>
+      <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
+        {/* Valor unitário */}
+        <div className="flex items-center gap-1 bg-white border border-gray-300 rounded-lg px-2 focus-within:ring-2 focus-within:ring-green-700 transition w-28 md:w-32 shrink-0">
+          <span className="text-xs text-gray-400 font-medium select-none">R$</span>
+          <input
+            type="number"
+            className="w-full border-none focus:ring-0 py-2 px-1 text-sm bg-transparent"
+            placeholder="0,00"
+            min="0"
+            step="0.01"
+            value={item.valor_unitario || ''}
+            onChange={(e) => handlePrecoChange(e.target.value)}
+          />
+        </div>
 
-      {/* Quantidade */}
-      <div className="flex items-center gap-1">
+        {/* Quantidade */}
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => handleQuantidade(-1)}
+            className="w-7 h-7 rounded border border-gray-300 text-gray-600 hover:bg-gray-100 flex items-center justify-center text-lg leading-none"
+          >
+            −
+          </button>
+          <span className="w-6 text-center text-sm font-medium">{item.quantidade}</span>
+          <button
+            type="button"
+            onClick={() => handleQuantidade(1)}
+            className="w-7 h-7 rounded border border-gray-300 text-gray-600 hover:bg-gray-100 flex items-center justify-center text-lg leading-none"
+          >
+            +
+          </button>
+        </div>
+
+        {/* Subtotal */}
+        <div className="flex-1 md:flex-none md:w-24 text-right">
+          <span className="text-sm font-semibold text-gray-700">{formatarMoeda(subtotal)}</span>
+        </div>
+
+        {/* Remover */}
         <button
           type="button"
-          onClick={() => handleQuantidade(-1)}
-          className="w-7 h-7 rounded border border-gray-300 text-gray-600 hover:bg-gray-100 flex items-center justify-center text-lg leading-none"
+          onClick={onRemove}
+          disabled={!podRemover}
+          className="w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-600 text-xl disabled:opacity-20 shrink-0"
+          aria-label="Remover"
         >
-          −
-        </button>
-        <span className="w-6 text-center text-sm font-medium">{item.quantidade}</span>
-        <button
-          type="button"
-          onClick={() => handleQuantidade(1)}
-          className="w-7 h-7 rounded border border-gray-300 text-gray-600 hover:bg-gray-100 flex items-center justify-center text-lg leading-none"
-        >
-          +
+          ×
         </button>
       </div>
-
-      {/* Subtotal */}
-      <div className="w-20 text-right text-sm text-gray-600 pt-2 shrink-0">
-        {formatarMoeda(subtotal)}
-      </div>
-
-      {/* Remover */}
-      <button
-        type="button"
-        onClick={onRemove}
-        disabled={!podRemover}
-        className="text-red-400 hover:text-red-600 pt-2 text-lg disabled:opacity-20"
-        aria-label="Remover"
-      >
-        ×
-      </button>
     </div>
   )
 }

@@ -113,8 +113,11 @@ export default function CampoEndereco({ value, onChange }: Props) {
   }
 
   function selecionarSugestao(s: { display_name: string; lat: string; lon: string; address: { road?: string; suburb?: string; neighbourhood?: string; city_district?: string } }) {
-    const rua = s.address?.road ?? s.display_name.split(',')[0]
-    const bairroGeo = s.address?.suburb ?? s.address?.neighbourhood ?? s.address?.city_district ?? value.bairro
+    const rua = s.address?.road ?? s.display_name.split(',')[0]?.trim()
+    // Nominatim coloca o bairro mais específico como 2º segmento do display_name,
+    // que é mais confiável do que address.suburb (que pode vir invertido)
+    const bairroDisplayName = s.display_name.split(',')[1]?.trim()
+    const bairroGeo = bairroDisplayName || s.address?.suburb || s.address?.neighbourhood || s.address?.city_district || value.bairro
     setTermoBusca(rua)
     setGeocAberto(false)
     onChange({
@@ -175,15 +178,22 @@ export default function CampoEndereco({ value, onChange }: Props) {
         {geocAberto && (sugestoesGeo.length > 0 || buscandoGeo) && (
           <ul className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-auto text-sm">
             {buscandoGeo && <li className="px-3 py-2 text-gray-400">Buscando...</li>}
-            {sugestoesGeo.map((s, i) => (
-              <li
-                key={i}
-                className="px-3 py-2 hover:bg-green-50 cursor-pointer"
-                onMouseDown={(e) => { e.preventDefault(); selecionarSugestao(s) }}
-              >
-                {s.display_name}
-              </li>
-            ))}
+            {sugestoesGeo.map((s, i) => {
+              const ruaExtraida = s.address?.road ?? s.display_name.split(',')[0]?.trim()
+              const bairroExtraido = s.display_name.split(',')[1]?.trim() || s.address?.suburb || s.address?.neighbourhood || null
+              return (
+                <li
+                  key={i}
+                  className="px-3 py-2 hover:bg-green-50 cursor-pointer"
+                  onMouseDown={(e) => { e.preventDefault(); selecionarSugestao(s) }}
+                >
+                  <div className="text-sm text-gray-800">{ruaExtraida}</div>
+                  {bairroExtraido && (
+                    <div className="text-xs text-gray-500 mt-0.5">Bairro: {bairroExtraido}</div>
+                  )}
+                </li>
+              )
+            })}
           </ul>
         )}
       </div>
