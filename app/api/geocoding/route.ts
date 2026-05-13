@@ -5,7 +5,7 @@ export async function GET(req: NextRequest) {
   if (!q || q.trim().length < 3) return NextResponse.json([])
 
   const query = `${q}, Manhuaçu, MG, Brasil`
-  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=3`
 
   const res = await fetch(url, {
     headers: {

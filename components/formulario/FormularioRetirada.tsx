@@ -3,11 +3,19 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import CampoProdutos, { type ItemPedido } from './CampoProdutos'
+import CampoCliente from './CampoCliente'
 import Modal from '@/components/ui/Modal'
 import { formatarMoeda } from '@/lib/formatters'
 import type { PagamentoTipo } from '@/lib/types'
 
 const hoje = new Date().toISOString().split('T')[0]
+
+const JANELAS_RETIRADA = [
+  { value: 'manha', label: 'Manhã (8h–12h)' },
+  { value: 'tarde', label: 'Tarde (12h–18h)' },
+  { value: 'noite', label: 'Noite (18h–21h)' },
+  { value: 'livre', label: 'Horário específico...' },
+]
 
 export default function FormularioRetirada() {
   const router = useRouter()
@@ -22,7 +30,8 @@ export default function FormularioRetirada() {
   const [itens, setItens] = useState<ItemPedido[]>([{ nome_produto: '', valor_unitario: 0, quantidade: 1 }])
 
   const [dataRetirada, setDataRetirada] = useState(hoje)
-  const [horarioRetirada, setHorarioRetirada] = useState('12:00')
+  const [janelaRetirada, setJanelaRetirada] = useState('tarde')
+  const [horarioLivre, setHorarioLivre] = useState('')
 
   const [temCartao, setTemCartao] = useState(false)
   const [mensagemCartao, setMensagemCartao] = useState('')
@@ -57,7 +66,7 @@ export default function FormularioRetirada() {
         destinatario_nome: nomeRetirada || null,
         destinatario_telefone: telefoneRetirada || null,
         data_entrega: dataRetirada || null,
-        horario_entrega: horarioRetirada || null,
+        horario_entrega: janelaRetirada === 'livre' ? (horarioLivre || null) : JANELAS_RETIRADA.find(j => j.value === janelaRetirada)?.label ?? null,
         tem_cartao: temCartao,
         mensagem_cartao: temCartao ? mensagemCartao : null,
         pago,
@@ -89,7 +98,8 @@ export default function FormularioRetirada() {
     setTelefoneRetirada('')
     setItens([{ nome_produto: '', valor_unitario: 0, quantidade: 1 }])
     setDataRetirada(hoje)
-    setHorarioRetirada('12:00')
+    setJanelaRetirada('tarde')
+    setHorarioLivre('')
     setTemCartao(false)
     setMensagemCartao('')
     setPago(true)
@@ -105,16 +115,12 @@ export default function FormularioRetirada() {
       <form onSubmit={handleSubmit}>
         <div className="section-card">
           <h2 className="section-title">Cliente</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2 sm:col-span-1">
-              <label className="form-label">Nome do cliente</label>
-              <input className="form-input" placeholder="Nome completo" value={clienteNome} onChange={(e) => setClienteNome(e.target.value)} required />
-            </div>
-            <div className="col-span-2 sm:col-span-1">
-              <label className="form-label">Telefone do cliente</label>
-              <input className="form-input" placeholder="(35) 99999-9999" value={clienteTelefone} onChange={(e) => setClienteTelefone(e.target.value)} required />
-            </div>
-          </div>
+          <CampoCliente
+            nome={clienteNome}
+            telefone={clienteTelefone}
+            onNomeChange={setClienteNome}
+            onTelefoneChange={setClienteTelefone}
+          />
         </div>
 
         <div className="section-card">
@@ -131,7 +137,24 @@ export default function FormularioRetirada() {
             </div>
             <div>
               <label className="form-label">Horário</label>
-              <input type="time" className="form-input" value={horarioRetirada} onChange={(e) => setHorarioRetirada(e.target.value)} />
+              <select
+                className="form-input"
+                value={janelaRetirada}
+                onChange={(e) => setJanelaRetirada(e.target.value)}
+              >
+                {JANELAS_RETIRADA.map(j => (
+                  <option key={j.value} value={j.value}>{j.label}</option>
+                ))}
+              </select>
+              {janelaRetirada === 'livre' && (
+                <input
+                  type="time"
+                  className="form-input mt-1.5"
+                  value={horarioLivre}
+                  onChange={(e) => setHorarioLivre(e.target.value)}
+                  placeholder="HH:MM"
+                />
+              )}
             </div>
           </div>
         </div>

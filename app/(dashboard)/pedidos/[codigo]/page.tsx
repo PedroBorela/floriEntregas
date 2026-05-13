@@ -4,6 +4,9 @@ import StatusBadge from '@/components/ui/StatusBadge'
 import StatusDropdown from '@/components/pedidos/StatusDropdown'
 import BotaoImprimir from '@/components/impressao/BotaoImprimir'
 import BotaoCopiar from '@/components/ui/BotaoCopiar'
+import BotaoCancelar from '@/components/pedidos/BotaoCancelar'
+import BotaoEditar from '@/components/pedidos/BotaoEditar'
+import BotaoWhatsApp from '@/components/pedidos/BotaoWhatsApp'
 import { formatarMoeda, formatarData, formatarDataHora } from '@/lib/formatters'
 import Link from 'next/link'
 import type { Pedido, PedidoItem } from '@/lib/types'
@@ -24,10 +27,13 @@ const CORES_CATEGORIA: Record<string, string> = {
 
 interface PageProps {
   params: Promise<{ codigo: string }>
+  searchParams: Promise<{ from?: string }>
 }
 
-export default async function DetalhePedidoPage({ params }: PageProps) {
+export default async function DetalhePedidoPage({ params, searchParams }: PageProps) {
   const { codigo } = await params
+  const { from } = await searchParams
+  const voltarHref = from?.startsWith('/') ? from : '/pedidos'
 
   const { data: pedido, error } = await supabase
     .from('pedidos')
@@ -43,17 +49,35 @@ export default async function DetalhePedidoPage({ params }: PageProps) {
   return (
     <div>
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <Link href="/pedidos" className="text-gray-400 hover:text-gray-600 text-sm">← Voltar</Link>
+        <Link href={voltarHref} className="text-gray-400 hover:text-gray-600 text-sm">← Voltar</Link>
         <h1 className="text-xl font-bold text-green-900 font-mono">{p.codigo}</h1>
         <StatusBadge status={p.status} />
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2 flex-wrap">
+          <BotaoEditar pedido={p as Pedido} />
+          <BotaoCancelar pedidoId={p.id} codigo={p.codigo} status={p.status} />
           <BotaoImprimir pedido={{ ...p, pedido_itens: itens as PedidoItem[] }} />
         </div>
       </div>
 
+      {p.status === 'cancelado' && p.motivo_cancelamento && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+          <p className="text-sm font-semibold text-red-700 mb-1">Motivo do cancelamento</p>
+          <p className="text-sm text-red-600">{p.motivo_cancelamento}</p>
+        </div>
+      )}
+
       <div className="section-card">
         <StatusDropdown pedidoId={p.id} statusAtual={p.status} tipo={p.tipo} />
       </div>
+
+      {p.status !== 'cancelado' && (
+        <div className="section-card flex flex-wrap gap-2">
+          <BotaoWhatsApp pedido={p as Pedido} tipo="confirmacao" />
+          {(p.status === 'saiu_entrega' || p.status === 'entregue' || p.status === 'retirado') && (
+            <BotaoWhatsApp pedido={p as Pedido} tipo="saiu_entrega" />
+          )}
+        </div>
+      )}
 
       <div className="section-card">
         <h2 className="section-title">Cliente</h2>
@@ -131,7 +155,7 @@ export default async function DetalhePedidoPage({ params }: PageProps) {
         <p className="text-sm text-gray-700">
           <span className="capitalize">{p.tipo}</span>
           {p.data_entrega && ` em ${formatarData(p.data_entrega)}`}
-          {p.horario_entrega && ` às ${p.horario_entrega.slice(0, 5)}`}
+          {p.horario_entrega && ` — ${p.horario_entrega}`}
         </p>
       </div>
 

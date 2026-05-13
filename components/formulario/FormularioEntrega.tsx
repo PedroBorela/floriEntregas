@@ -3,12 +3,20 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import CampoProdutos, { type ItemPedido } from './CampoProdutos'
+import CampoCliente from './CampoCliente'
 import CampoEndereco, { type EnderecoData, ENDERECO_VAZIO } from '@/components/endereco/CampoEndereco'
 import Modal from '@/components/ui/Modal'
 import { formatarMoeda } from '@/lib/formatters'
 import type { PagamentoTipo } from '@/lib/types'
 
 const hoje = new Date().toISOString().split('T')[0]
+
+const JANELAS_ENTREGA = [
+  { value: 'manha', label: 'Manhã (8h–12h)' },
+  { value: 'tarde', label: 'Tarde (12h–18h)' },
+  { value: 'noite', label: 'Noite (18h–21h)' },
+  { value: 'livre', label: 'Horário específico...' },
+]
 
 export default function FormularioEntrega() {
   const router = useRouter()
@@ -21,8 +29,10 @@ export default function FormularioEntrega() {
   const [itens, setItens] = useState<ItemPedido[]>([{ nome_produto: '', valor_unitario: 0, quantidade: 1 }])
 
   const [dataEntrega, setDataEntrega] = useState(hoje)
-  const [horarioEntrega, setHorarioEntrega] = useState('12:00')
+  const [janelaEntrega, setJanelaEntrega] = useState('tarde')
+  const [horarioLivre, setHorarioLivre] = useState('')
 
+  const [ePresente, setEPresente] = useState(false)
   const [destinatarioNome, setDestinatarioNome] = useState('')
   const [destinatarioTelefone, setDestinatarioTelefone] = useState('')
   const [endereco, setEndereco] = useState<EnderecoData>(ENDERECO_VAZIO)
@@ -59,8 +69,8 @@ export default function FormularioEntrega() {
         tipo: 'entrega',
         cliente_nome: clienteNome,
         cliente_telefone: clienteTelefone,
-        destinatario_nome: destinatarioNome || null,
-        destinatario_telefone: destinatarioTelefone || null,
+        destinatario_nome: ePresente ? (destinatarioNome || null) : null,
+        destinatario_telefone: ePresente ? (destinatarioTelefone || null) : null,
         cep: endereco.cep || null,
         logradouro: endereco.logradouro || null,
         numero: endereco.numero || null,
@@ -72,7 +82,7 @@ export default function FormularioEntrega() {
         longitude: endereco.longitude,
         zona_frete_id: endereco.zona_frete_id,
         data_entrega: dataEntrega || null,
-        horario_entrega: horarioEntrega || null,
+        horario_entrega: janelaEntrega === 'livre' ? (horarioLivre || null) : JANELAS_ENTREGA.find(j => j.value === janelaEntrega)?.label ?? null,
         tem_cartao: temCartao,
         mensagem_cartao: temCartao ? mensagemCartao : null,
         pago,
@@ -102,7 +112,9 @@ export default function FormularioEntrega() {
     setClienteTelefone('')
     setItens([{ nome_produto: '', valor_unitario: 0, quantidade: 1 }])
     setDataEntrega(hoje)
-    setHorarioEntrega('12:00')
+    setJanelaEntrega('tarde')
+    setHorarioLivre('')
+    setEPresente(false)
     setDestinatarioNome('')
     setDestinatarioTelefone('')
     setEndereco(ENDERECO_VAZIO)
@@ -121,16 +133,12 @@ export default function FormularioEntrega() {
       <form onSubmit={handleSubmit} className="space-y-0">
         <div className="section-card">
           <h2 className="section-title">Cliente</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2 sm:col-span-1">
-              <label className="form-label">Nome do cliente</label>
-              <input className="form-input" placeholder="Nome completo" value={clienteNome} onChange={(e) => setClienteNome(e.target.value)} required />
-            </div>
-            <div className="col-span-2 sm:col-span-1">
-              <label className="form-label">Telefone do cliente</label>
-              <input className="form-input" placeholder="(35) 99999-9999" value={clienteTelefone} onChange={(e) => setClienteTelefone(e.target.value)} required />
-            </div>
-          </div>
+          <CampoCliente
+            nome={clienteNome}
+            telefone={clienteTelefone}
+            onNomeChange={setClienteNome}
+            onTelefoneChange={setClienteTelefone}
+          />
         </div>
 
         <div className="section-card">
@@ -147,23 +155,54 @@ export default function FormularioEntrega() {
             </div>
             <div>
               <label className="form-label">Horário</label>
-              <input type="time" className="form-input" value={horarioEntrega} onChange={(e) => setHorarioEntrega(e.target.value)} />
+              <select
+                className="form-input"
+                value={janelaEntrega}
+                onChange={(e) => setJanelaEntrega(e.target.value)}
+              >
+                {JANELAS_ENTREGA.map(j => (
+                  <option key={j.value} value={j.value}>{j.label}</option>
+                ))}
+              </select>
+              {janelaEntrega === 'livre' && (
+                <input
+                  type="time"
+                  className="form-input mt-1.5"
+                  value={horarioLivre}
+                  onChange={(e) => setHorarioLivre(e.target.value)}
+                  placeholder="HH:MM"
+                />
+              )}
             </div>
           </div>
         </div>
 
         <div className="section-card">
-          <h2 className="section-title">Destinatário</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2 sm:col-span-1">
-              <label className="form-label">Nome de quem vai receber</label>
-              <input className="form-input" placeholder="Nome do destinatário" value={destinatarioNome} onChange={(e) => setDestinatarioNome(e.target.value)} />
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={ePresente}
+              onChange={(e) => {
+                setEPresente(e.target.checked)
+                if (!e.target.checked) { setDestinatarioNome(''); setDestinatarioTelefone('') }
+              }}
+              className="w-4 h-4 accent-green-800"
+            />
+            <span className="text-sm font-medium text-gray-700">Este pedido é um presente?</span>
+            <span className="text-xs text-gray-400">(destinatário diferente do comprador)</span>
+          </label>
+          {ePresente && (
+            <div className="grid grid-cols-2 gap-4 mt-3">
+              <div className="col-span-2 sm:col-span-1">
+                <label className="form-label">Nome de quem vai receber</label>
+                <input className="form-input" placeholder="Nome do destinatário" value={destinatarioNome} onChange={(e) => setDestinatarioNome(e.target.value)} />
+              </div>
+              <div className="col-span-2 sm:col-span-1">
+                <label className="form-label">Telefone de quem vai receber</label>
+                <input className="form-input" placeholder="(35) 99999-9999" value={destinatarioTelefone} onChange={(e) => setDestinatarioTelefone(e.target.value)} />
+              </div>
             </div>
-            <div className="col-span-2 sm:col-span-1">
-              <label className="form-label">Telefone de quem vai receber</label>
-              <input className="form-input" placeholder="(35) 99999-9999" value={destinatarioTelefone} onChange={(e) => setDestinatarioTelefone(e.target.value)} />
-            </div>
-          </div>
+          )}
         </div>
 
         <div className="section-card">
