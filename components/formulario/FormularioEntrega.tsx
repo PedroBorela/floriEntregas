@@ -148,6 +148,18 @@ export default function FormularioEntrega() {
 
         <div className="section-card">
           <h2 className="section-title">Data e Horário de Entrega</h2>
+          <div className="flex gap-2 mb-3">
+            {[{ label: 'Hoje', offset: 0 }, { label: 'Amanhã', offset: 1 }, { label: 'Depois de amanhã', offset: 2 }].map(({ label, offset }) => {
+              const d = new Date(); d.setDate(d.getDate() + offset)
+              const val = d.toISOString().split('T')[0]
+              return (
+                <button key={label} type="button" onClick={() => setDataEntrega(val)}
+                  className={`text-xs px-3 py-1.5 rounded-full border transition ${dataEntrega === val ? 'bg-green-800 text-white border-green-800' : 'border-gray-300 text-gray-500 hover:border-green-700 hover:text-green-800'}`}>
+                  {label}
+                </button>
+              )
+            })}
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="form-label">Data</label>
