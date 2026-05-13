@@ -25,6 +25,34 @@ const CORES_CATEGORIA: Record<string, string> = {
   Especiais: 'bg-yellow-100 text-yellow-800',
 }
 
+function aplanarPedido(p: Record<string, any>) {
+  const end = p.endereco as Record<string, any> | null
+  const dest = p.destinatario as Record<string, any> | null
+  const pag = Array.isArray(p.pagamento) ? p.pagamento[0] as Record<string, any> | undefined : null
+  const notifs: Record<string, any>[] = Array.isArray(p.notificacoes) ? p.notificacoes : []
+  const { endereco, destinatario, pagamento, notificacoes, ...rest } = p
+  return {
+    ...rest,
+    cep: end?.cep ?? null,
+    logradouro: end?.logradouro ?? null,
+    numero: end?.numero ?? null,
+    bairro: end?.bairro ?? null,
+    cidade: end?.cidade ?? 'Manhuaçu',
+    estado: end?.estado ?? 'MG',
+    referencia: end?.referencia ?? null,
+    latitude: end?.latitude ?? null,
+    longitude: end?.longitude ?? null,
+    destinatario_nome: dest?.nome ?? null,
+    destinatario_telefone: dest?.telefone ?? null,
+    pago: pag?.pago ?? false,
+    pagamento_tipo: pag?.tipo ?? null,
+    pagamento_parcial: pag?.parcial ?? false,
+    valor_pago: pag?.valor_pago ?? 0,
+    whatsapp_confirmacao_enviado: notifs.some(n => n.tipo === 'confirmacao' && n.enviado),
+    whatsapp_saiu_enviado: notifs.some(n => n.tipo === 'saiu_entrega' && n.enviado),
+  }
+}
+
 interface PageProps {
   params: Promise<{ codigo: string }>
   searchParams: Promise<{ from?: string }>
@@ -35,15 +63,15 @@ export default async function DetalhePedidoPage({ params, searchParams }: PagePr
   const { from } = await searchParams
   const voltarHref = from?.startsWith('/') ? from : '/pedidos'
 
-  const { data: pedido, error } = await supabase
+  const { data: pedidoRaw, error } = await supabase
     .from('pedidos')
-    .select('*, pedido_itens(*, produtos_catalogo(categoria, imagem_url))')
+    .select('*, pedido_itens(*, produtos_catalogo(categoria, imagem_url)), endereco:enderecos(*), destinatario:destinatarios(*), pagamento:pagamentos(*), notificacoes:notificacoes_whatsapp(*)')
     .eq('codigo', codigo.toUpperCase())
     .single()
 
-  if (error || !pedido) notFound()
+  if (error || !pedidoRaw) notFound()
 
-  const p = pedido as Pedido
+  const p = aplanarPedido(pedidoRaw) as Pedido
   const itens = (p.pedido_itens ?? []) as ItemDetalhado[]
 
   return (

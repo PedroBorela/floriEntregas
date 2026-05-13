@@ -2,6 +2,36 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import type { PedidoStatus, PagamentoTipo } from '@/lib/types'
 
+const JOIN_SELECT = '*, pedido_itens(*), endereco:enderecos(*), destinatario:destinatarios(*), pagamento:pagamentos(*), notificacoes:notificacoes_whatsapp(*)'
+
+function aplanarPedido(p: Record<string, any>) {
+  const end = p.endereco as Record<string, any> | null
+  const dest = p.destinatario as Record<string, any> | null
+  const pag = Array.isArray(p.pagamento) ? p.pagamento[0] as Record<string, any> | undefined : null
+  const notifs: Record<string, any>[] = Array.isArray(p.notificacoes) ? p.notificacoes : []
+  const { endereco, destinatario, pagamento, notificacoes, ...rest } = p
+  return {
+    ...rest,
+    cep: end?.cep ?? null,
+    logradouro: end?.logradouro ?? null,
+    numero: end?.numero ?? null,
+    bairro: end?.bairro ?? null,
+    cidade: end?.cidade ?? 'Manhuaçu',
+    estado: end?.estado ?? 'MG',
+    referencia: end?.referencia ?? null,
+    latitude: end?.latitude ?? null,
+    longitude: end?.longitude ?? null,
+    destinatario_nome: dest?.nome ?? null,
+    destinatario_telefone: dest?.telefone ?? null,
+    pago: pag?.pago ?? false,
+    pagamento_tipo: pag?.tipo ?? null,
+    pagamento_parcial: pag?.parcial ?? false,
+    valor_pago: pag?.valor_pago ?? 0,
+    whatsapp_confirmacao_enviado: notifs.some(n => n.tipo === 'confirmacao' && n.enviado),
+    whatsapp_saiu_enviado: notifs.some(n => n.tipo === 'saiu_entrega' && n.enviado),
+  }
+}
+
 const PROGRESSAO: Partial<Record<PedidoStatus, PedidoStatus>> = {
   pendente: 'em_preparo',
   em_preparo: 'saiu_entrega',
@@ -71,23 +101,10 @@ export async function PATCH(
 
     const agora = new Date().toISOString()
     const tipo_notif = campo === 'whatsapp_confirmacao' ? 'confirmacao' : 'saiu_entrega'
-    const update = campo === 'whatsapp_confirmacao'
-      ? { whatsapp_confirmacao_enviado: true, whatsapp_confirmacao_em: agora }
-      : { whatsapp_saiu_enviado: true, whatsapp_saiu_em: agora }
 
     const { data: pedido } = await supabase.from('pedidos').select('cliente_telefone').eq('id', id).single()
 
-    const { data, error } = await supabase
-      .from('pedidos')
-      .update(update)
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (error) return NextResponse.json({ error: error.message }, { status: 400 })
-
-    // registra na tabela normalizada
-    await supabase.from('notificacoes_whatsapp').insert({
+    const { error } = await supabase.from('notificacoes_whatsapp').insert({
       pedido_id: id,
       tipo: tipo_notif,
       destinatario_telefone: pedido?.cliente_telefone ?? '',
@@ -95,7 +112,8 @@ export async function PATCH(
       enviado_em: agora,
     })
 
-    return NextResponse.json({ pedido: data })
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+    return NextResponse.json({ ok: true })
   }
 
   if (acao === 'marcar_impresso') {
@@ -193,15 +211,15 @@ export async function PATCH(
       destinatario_id = null
     }
 
-    // atualiza pedido (mantém colunas planas + novas FKs)
+    // atualiza pedido — apenas campos não-normalizados + FKs
     const { error: updErr } = await supabase
       .from('pedidos')
       .update({
-        cliente_nome, cliente_telefone, destinatario_nome, destinatario_telefone,
-        cep, logradouro, numero, bairro, cidade, estado, referencia, latitude, longitude,
-        zona_frete_id, data_entrega, horario_entrega, tem_cartao, mensagem_cartao,
-        pago, pagamento_tipo, pagamento_parcial, valor_pago,
-        valor_produtos, valor_frete, valor_total, observacoes,
+        cliente_nome, cliente_telefone,
+        zona_frete_id, data_entrega, horario_entrega,
+        tem_cartao, mensagem_cartao,
+        valor_produtos, valor_frete, valor_total,
+        observacoes,
         endereco_id, destinatario_id,
       })
       .eq('id', id)
@@ -253,11 +271,11 @@ export async function PATCH(
 
     const { data: pedidoAtualizado } = await supabase
       .from('pedidos')
-      .select('*, pedido_itens(*)')
+      .select(JOIN_SELECT)
       .eq('id', id)
       .single()
 
-    return NextResponse.json({ pedido: pedidoAtualizado })
+    return NextResponse.json({ pedido: pedidoAtualizado ? aplanarPedido(pedidoAtualizado) : null })
   }
 
   return NextResponse.json({ error: 'Ação desconhecida' }, { status: 400 })

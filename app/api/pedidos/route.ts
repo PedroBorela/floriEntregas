@@ -54,10 +54,27 @@ export async function POST(req: NextRequest) {
     if (dest) destinatario_id = dest.id
   }
 
-  // 4. criar pedido
+  // 4. criar pedido — apenas campos não-normalizados
   const { data: pedido, error: pedidoError } = await supabase
     .from('pedidos')
-    .insert({ ...pedidoData, codigo: '', cliente_id: cliente.id, endereco_id, destinatario_id })
+    .insert({
+      tipo: pedidoData.tipo,
+      cliente_nome: pedidoData.cliente_nome,
+      cliente_telefone: pedidoData.cliente_telefone,
+      zona_frete_id: pedidoData.zona_frete_id ?? null,
+      data_entrega: pedidoData.data_entrega ?? null,
+      horario_entrega: pedidoData.horario_entrega ?? null,
+      tem_cartao: pedidoData.tem_cartao ?? false,
+      mensagem_cartao: pedidoData.mensagem_cartao ?? null,
+      valor_produtos: pedidoData.valor_produtos,
+      valor_frete: pedidoData.valor_frete,
+      valor_total: pedidoData.valor_total,
+      observacoes: pedidoData.observacoes ?? null,
+      codigo: '',
+      cliente_id: cliente.id,
+      endereco_id,
+      destinatario_id,
+    })
     .select()
     .single()
 
@@ -94,7 +111,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const codigo = searchParams.get('codigo')
-  const busca = searchParams.get('busca')       // nome ou telefone do cliente
+  const busca = searchParams.get('busca')
   const status = searchParams.get('status')
   const data = searchParams.get('data')
   const dataInicio = searchParams.get('dataInicio')
@@ -110,9 +127,7 @@ export async function GET(req: NextRequest) {
     .range((page - 1) * pageSize, page * pageSize - 1)
 
   if (codigo) query = query.ilike('codigo', `%${codigo}%`)
-  if (busca) {
-    query = query.or(`cliente_nome.ilike.%${busca}%,cliente_telefone.ilike.%${busca}%`)
-  }
+  if (busca) query = query.or(`cliente_nome.ilike.%${busca}%,cliente_telefone.ilike.%${busca}%`)
   if (status) query = query.eq('status', status)
   if (data) query = query.eq('data_entrega', data)
   if (dataInicio) query = query.gte('data_entrega', dataInicio)
@@ -120,7 +135,6 @@ export async function GET(req: NextRequest) {
   if (tipo) query = query.eq('tipo', tipo)
 
   const { data: pedidos, error, count } = await query
-
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 
   return NextResponse.json({ pedidos, total: count, page, pageSize })
