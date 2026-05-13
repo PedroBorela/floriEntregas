@@ -6,19 +6,21 @@ export async function GET(req: Request) {
   const dias = Math.min(90, Math.max(1, parseInt(searchParams.get('dias') ?? '30')))
   const desde = new Date()
   desde.setDate(desde.getDate() - dias)
+  const hoje = new Date().toISOString().split('T')[0]
 
   const { data: pedidos } = await supabase
     .from('pedidos')
-    .select('id, valor_total, tipo, pagamento_tipo, status, created_at')
+    .select('id, valor_total, tipo, pagamento_tipo, pago, pagamento_parcial, valor_pago, status, created_at, data_entrega, cliente_id, cliente_nome')
     .neq('status', 'cancelado')
     .gte('created_at', desde.toISOString())
 
   if (!pedidos?.length) {
     return NextResponse.json({
-      kpis: { total_pedidos: 0, receita_total: 0, ticket_medio: 0, entregas: 0, retiradas: 0 },
+      kpis: { total_pedidos: 0, receita_total: 0, ticket_medio: 0, entregas: 0, retiradas: 0, a_receber: 0, pedidos_hoje: 0 },
       top_produtos: [],
       por_dia: [],
       pagamentos: [],
+      top_clientes: [],
     })
   }
 
@@ -35,6 +37,14 @@ export async function GET(req: Request) {
   const ticket_medio = total_pedidos > 0 ? receita_total / total_pedidos : 0
   const entregas = pedidos.filter((p) => p.tipo === 'entrega').length
   const retiradas = pedidos.filter((p) => p.tipo === 'retirada').length
+  const pedidos_hoje = pedidos.filter((p) => (p.data_entrega ?? (p.created_at as string).slice(0, 10)) === hoje).length
+
+  const a_receber = pedidos.reduce((s, p) => {
+    if (p.pago) return s
+    const total = parseFloat(String(p.valor_total ?? 0))
+    const pago = p.pagamento_parcial ? parseFloat(String(p.valor_pago ?? 0)) : 0
+    return s + (total - pago)
+  }, 0)
 
   const prodMap = new Map<string, { total: number; receita: number }>()
   for (const item of itensList) {
@@ -68,5 +78,24 @@ export async function GET(req: Request) {
     .sort((a, b) => b[1] - a[1])
     .map(([tipo, qtd]) => ({ tipo, qtd }))
 
-  return NextResponse.json({ kpis: { total_pedidos, receita_total, ticket_medio, entregas, retiradas }, top_produtos, por_dia, pagamentos })
+  const clienteMap = new Map<string, { nome: string; pedidos: number; receita: number }>()
+  for (const p of pedidos) {
+    if (!p.cliente_id) continue
+    const cur = clienteMap.get(p.cliente_id) ?? { nome: p.cliente_nome, pedidos: 0, receita: 0 }
+    cur.pedidos++
+    cur.receita += parseFloat(String(p.valor_total ?? 0))
+    clienteMap.set(p.cliente_id, cur)
+  }
+  const top_clientes = [...clienteMap.entries()]
+    .sort((a, b) => b[1].pedidos - a[1].pedidos)
+    .slice(0, 5)
+    .map(([id, v]) => ({ id, ...v }))
+
+  return NextResponse.json({
+    kpis: { total_pedidos, receita_total, ticket_medio, entregas, retiradas, a_receber, pedidos_hoje },
+    top_produtos,
+    por_dia,
+    pagamentos,
+    top_clientes,
+  })
 }

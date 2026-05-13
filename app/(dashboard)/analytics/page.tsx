@@ -2,8 +2,9 @@
 
 import { useState, useEffect, type ReactElement } from 'react'
 import { formatarMoeda } from '@/lib/formatters'
+import Link from 'next/link'
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LineChart, Line,
 } from 'recharts'
 
 interface Analytics {
@@ -13,10 +14,13 @@ interface Analytics {
     ticket_medio: number
     entregas: number
     retiradas: number
+    a_receber: number
+    pedidos_hoje: number
   }
   top_produtos: { nome: string; total: number; receita: number }[]
   por_dia: { dia: string; pedidos: number; receita: number }[]
   pagamentos: { tipo: string; qtd: number }[]
+  top_clientes: { id: string; nome: string; pedidos: number; receita: number }[]
 }
 
 const LABELS_PAG: Record<string, string> = {
@@ -208,7 +212,7 @@ export default function AnalyticsPage() {
 }
 
 function DashboardContent({ dados }: { dados: Analytics }) {
-  const { kpis, top_produtos, por_dia, pagamentos } = dados
+  const { kpis, top_produtos, por_dia, pagamentos, top_clientes } = dados
   const totalPag = pagamentos.reduce((s, p) => s + p.qtd, 0)
   const pctEntregas = kpis.total_pedidos > 0
     ? Math.round((kpis.entregas / kpis.total_pedidos) * 100)
@@ -216,10 +220,10 @@ function DashboardContent({ dados }: { dados: Analytics }) {
 
   return (
     <div className="space-y-4">
-      {/* KPI Cards */}
+      {/* KPI Cards — linha 1 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard
-          label="Total de pedidos"
+          label="Pedidos no período"
           value={String(kpis.total_pedidos)}
           accentColor="#1B5E20"
           icon={
@@ -239,20 +243,36 @@ function DashboardContent({ dados }: { dados: Analytics }) {
           }
         />
         <KpiCard
-          label="Ticket médio"
-          value={formatarMoeda(kpis.ticket_medio)}
-          accentColor="#D4651A"
+          label="A receber"
+          value={formatarMoeda(kpis.a_receber)}
+          sub="pedidos não pagos / parciais"
+          accentColor={kpis.a_receber > 0 ? '#C62828' : '#2E7D32'}
           icon={
             <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>
           }
         />
         <KpiCard
+          label="Pedidos hoje"
+          value={String(kpis.pedidos_hoje)}
+          sub={`ticket médio ${formatarMoeda(kpis.ticket_medio)}`}
+          accentColor="#1565C0"
+          icon={
+            <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          }
+        />
+      </div>
+
+      {/* Linha 2: tipo + entregas */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <KpiCard
           label="Taxa de entrega"
           value={`${pctEntregas}%`}
           sub={`${kpis.entregas} entregas · ${kpis.retiradas} retiradas`}
-          accentColor="#1565C0"
+          accentColor="#6A1B9A"
           icon={
             <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
@@ -271,26 +291,10 @@ function DashboardContent({ dados }: { dados: Analytics }) {
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={por_dia} margin={{ top: 5, right: 5, left: -28, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
-                <XAxis
-                  dataKey="dia"
-                  tick={{ fontSize: 10, fill: '#9ca3af' }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 10, fill: '#9ca3af' }}
-                  axisLine={false}
-                  tickLine={false}
-                  allowDecimals={false}
-                />
+                <XAxis dataKey="dia" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <Tooltip
-                  contentStyle={{
-                    borderRadius: 12,
-                    border: 'none',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                    fontSize: 12,
-                    padding: '8px 12px',
-                  }}
+                  contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: 12, padding: '8px 12px' }}
                   cursor={{ fill: '#f9fafb' }}
                   formatter={(v) => [v as number, 'Pedidos']}
                 />
@@ -300,7 +304,29 @@ function DashboardContent({ dados }: { dados: Analytics }) {
           )}
         </CardShell>
 
-        {/* Forma de pagamento */}
+        {/* Receita por dia */}
+        <CardShell title="Receita por dia (R$)">
+          {por_dia.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={por_dia} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
+                <XAxis dataKey="dia" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}`} />
+                <Tooltip
+                  contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: 12, padding: '8px 12px' }}
+                  formatter={(v) => [formatarMoeda(v as number), 'Receita']}
+                />
+                <Line type="monotone" dataKey="receita" stroke="#2E7D32" strokeWidth={2.5} dot={{ r: 3, fill: '#2E7D32' }} activeDot={{ r: 5 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </CardShell>
+      </div>
+
+      {/* Forma de pagamento + Top clientes */}
+      <div className="grid md:grid-cols-2 gap-4">
         <CardShell title="Forma de pagamento">
           {pagamentos.length === 0 ? (
             <EmptyState />
@@ -312,31 +338,47 @@ function DashboardContent({ dados }: { dados: Analytics }) {
                 const icon = PAG_ICONS[p.tipo] ?? PAG_ICONS.cartao_credito
                 return (
                   <div key={p.tipo} className="flex items-center gap-3">
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${color}15`, color }}
-                    >
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}15`, color }}>
                       {icon}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-baseline mb-1.5">
-                        <span className="text-sm font-medium text-gray-700">
-                          {LABELS_PAG[p.tipo] ?? p.tipo}
-                        </span>
+                        <span className="text-sm font-medium text-gray-700">{LABELS_PAG[p.tipo] ?? p.tipo}</span>
                         <span className="text-xs text-gray-400 ml-2 shrink-0">
                           {p.qtd} pedido{p.qtd !== 1 ? 's' : ''} · <strong className="text-gray-600">{pct}%</strong>
                         </span>
                       </div>
                       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-700"
-                          style={{ width: `${pct}%`, backgroundColor: color }}
-                        />
+                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: color }} />
                       </div>
                     </div>
                   </div>
                 )
               })}
+            </div>
+          )}
+        </CardShell>
+
+        {/* Top clientes */}
+        <CardShell title="Top 5 clientes">
+          {top_clientes.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <div className="space-y-3">
+              {top_clientes.map((c, i) => (
+                <Link key={c.id} href={`/clientes/${c.id}`} className="flex items-center gap-3 group">
+                  <span className="text-xs font-bold text-gray-200 w-5 text-right shrink-0 group-hover:text-gray-400 transition-colors">{i + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-sm font-medium text-gray-700 truncate pr-2 group-hover:text-green-800 transition-colors">{c.nome}</span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-xs text-gray-400">{formatarMoeda(c.receita)}</span>
+                        <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded-full">{c.pedidos}×</span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
             </div>
           )}
         </CardShell>
@@ -353,30 +395,19 @@ function DashboardContent({ dados }: { dados: Analytics }) {
               const pct = max > 0 ? (p.total / max) * 100 : 0
               return (
                 <div key={p.nome} className="flex items-center gap-3 group">
-                  <span className="text-xs font-bold text-gray-200 w-5 text-right shrink-0 group-hover:text-gray-400 transition-colors">
-                    {i + 1}
-                  </span>
+                  <span className="text-xs font-bold text-gray-200 w-5 text-right shrink-0 group-hover:text-gray-400 transition-colors">{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-baseline mb-1.5">
-                      <span className="text-sm font-medium text-gray-700 truncate pr-4 max-w-[60%]">
-                        {p.nome}
-                      </span>
+                      <span className="text-sm font-medium text-gray-700 truncate pr-4 max-w-[60%]">{p.nome}</span>
                       <div className="flex items-center gap-3 shrink-0">
-                        <span className="text-xs text-gray-400 hidden sm:block">
-                          {formatarMoeda(p.receita)}
-                        </span>
-                        <span className="text-sm font-semibold text-gray-800 w-6 text-right">
-                          {p.total}
-                        </span>
+                        <span className="text-xs text-gray-400 hidden sm:block">{formatarMoeda(p.receita)}</span>
+                        <span className="text-sm font-semibold text-gray-800 w-6 text-right">{p.total}</span>
                       </div>
                     </div>
                     <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-700"
-                        style={{
-                          width: `${pct}%`,
-                          backgroundColor: i === 0 ? '#D4651A' : i < 3 ? '#E07B38' : '#E89660',
-                        }}
+                        style={{ width: `${pct}%`, backgroundColor: i === 0 ? '#D4651A' : i < 3 ? '#E07B38' : '#E89660' }}
                       />
                     </div>
                   </div>
