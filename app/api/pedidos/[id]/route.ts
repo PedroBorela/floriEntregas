@@ -12,6 +12,7 @@ function aplanarPedido(p: Record<string, any>) {
   const { endereco, destinatario, pagamento, notificacoes, ...rest } = p
   return {
     ...rest,
+    endereco_apelido: end?.apelido ?? null,
     cep: end?.cep ?? null,
     logradouro: end?.logradouro ?? null,
     numero: end?.numero ?? null,
@@ -150,7 +151,7 @@ export async function PATCH(
   if (acao === 'editar') {
     const {
       itens, cliente_nome, cliente_telefone, destinatario_nome, destinatario_telefone,
-      cep, logradouro, numero, bairro, cidade, estado, referencia, latitude, longitude,
+      endereco_apelido, cep, logradouro, numero, bairro, cidade, estado, referencia, latitude, longitude,
       zona_frete_id, data_entrega, horario_entrega, tem_cartao, mensagem_cartao,
       pago, pagamento_tipo, pagamento_parcial, valor_pago,
       valor_produtos, valor_frete, valor_total, observacoes,
@@ -158,6 +159,7 @@ export async function PATCH(
       itens: { nome_produto: string; valor_unitario: number; quantidade: number; observacao?: string }[]
       cliente_nome: string; cliente_telefone: string
       destinatario_nome: string | null; destinatario_telefone: string | null
+      endereco_apelido: string | null
       cep: string | null; logradouro: string | null; numero: string | null
       bairro: string | null; cidade: string; estado: string
       referencia: string | null; latitude: number | null; longitude: number | null
@@ -179,6 +181,7 @@ export async function PATCH(
     let endereco_id = pedidoAtual?.endereco_id ?? null
     if (logradouro) {
       const endFields = {
+        apelido: endereco_apelido ?? null,
         cep: cep ?? null, logradouro, numero: numero ?? null,
         bairro: bairro ?? '', cidade: cidade ?? 'Manhuaçu', estado: estado ?? 'MG',
         referencia: referencia ?? null, latitude: latitude ?? null, longitude: longitude ?? null,

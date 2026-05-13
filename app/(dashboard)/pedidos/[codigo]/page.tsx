@@ -34,6 +34,7 @@ function aplanarPedido(p: Record<string, any>) {
   const { endereco, destinatario, pagamento, notificacoes, ...rest } = p
   return {
     ...rest,
+    endereco_apelido: end?.apelido ?? null,
     cep: end?.cep ?? null,
     logradouro: end?.logradouro ?? null,
     numero: end?.numero ?? null,

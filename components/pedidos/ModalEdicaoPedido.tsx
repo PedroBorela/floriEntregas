@@ -47,6 +47,7 @@ export default function ModalEdicaoPedido({ pedido, open, onClose, onSalvo }: Pr
   )
 
   const [endereco, setEndereco] = useState<EnderecoData>({
+    apelido: (pedido as any).endereco_apelido ?? '',
     cep: pedido.cep ?? '',
     logradouro: pedido.logradouro ?? '',
     numero: pedido.numero ?? '',
@@ -101,6 +102,7 @@ export default function ModalEdicaoPedido({ pedido, open, onClose, onSalvo }: Pr
         cliente_telefone: clienteTelefone,
         destinatario_nome: ePresente ? (destinatarioNome || null) : null,
         destinatario_telefone: ePresente ? (destinatarioTelefone || null) : null,
+        endereco_apelido: endereco.apelido || null,
         cep: endereco.cep || null,
         logradouro: endereco.logradouro || null,
         numero: endereco.numero || null,

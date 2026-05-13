@@ -73,6 +73,7 @@ export interface Pedido {
   destinatario_nome: string | null
   destinatario_telefone: string | null
 
+  endereco_apelido: string | null
   cep: string | null
   logradouro: string | null
   numero: string | null

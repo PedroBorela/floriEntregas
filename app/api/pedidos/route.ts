@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
       .from('enderecos')
       .insert({
         cliente_id: cliente.id,
+        apelido: pedidoData.endereco_apelido ?? null,
         cep: pedidoData.cep ?? null,
         logradouro: pedidoData.logradouro,
         numero: pedidoData.numero ?? null,

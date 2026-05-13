@@ -7,6 +7,7 @@ import { useFrete } from '@/hooks/useFrete'
 import { formatarMoeda } from '@/lib/formatters'
 
 export interface EnderecoData {
+  apelido: string
   cep: string
   logradouro: string
   numero: string
@@ -21,7 +22,23 @@ export interface EnderecoData {
   zona_frete_nome: string | null
 }
 
+export interface EnderecoExistente {
+  id: string
+  apelido: string | null
+  logradouro: string
+  numero: string | null
+  bairro: string
+  cidade: string
+  estado: string
+  cep: string | null
+  referencia: string | null
+  latitude: number | null
+  longitude: number | null
+  zona_frete_id: string | null
+}
+
 export const ENDERECO_VAZIO: EnderecoData = {
+  apelido: '',
   cep: '',
   logradouro: '',
   numero: '',
@@ -39,6 +56,7 @@ export const ENDERECO_VAZIO: EnderecoData = {
 interface Props {
   value: EnderecoData
   onChange: (data: EnderecoData) => void
+  enderecosExistentes?: EnderecoExistente[]
 }
 
 function mascaraCep(valor: string) {
@@ -46,7 +64,7 @@ function mascaraCep(valor: string) {
   return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d
 }
 
-export default function CampoEndereco({ value, onChange }: Props) {
+export default function CampoEndereco({ value, onChange, enderecosExistentes }: Props) {
   const { buscarCep, buscando: buscandoCep, erro: erroCep, setErro: setErroCep } = useCep()
   const { zonaMatch, semZona } = useFrete(value.bairro)
 
@@ -54,8 +72,8 @@ export default function CampoEndereco({ value, onChange }: Props) {
   const [geocAberto, setGeocAberto] = useState(false)
   const geocRef = useRef<HTMLDivElement>(null)
   const { sugestoes: sugestoesGeo, buscando: buscandoGeo } = useGeocoding(termoBusca)
+  const [badgeSelecionadoId, setBadgeSelecionadoId] = useState<string | null>(null)
 
-  // Fecha dropdown ao clicar fora
   useEffect(() => {
     function fechar(e: MouseEvent) {
       if (geocRef.current && !geocRef.current.contains(e.target as Node)) {
@@ -66,23 +84,46 @@ export default function CampoEndereco({ value, onChange }: Props) {
     return () => document.removeEventListener('mousedown', fechar)
   }, [])
 
-  // Atualiza o frete quando a zona é encontrada
   useEffect(() => {
     if (zonaMatch) {
-      onChange({
-        ...value,
-        valor_frete: zonaMatch.valor,
-        zona_frete_id: zonaMatch.id,
-        zona_frete_nome: zonaMatch.nome,
-      })
+      onChange({ ...value, valor_frete: zonaMatch.valor, zona_frete_id: zonaMatch.id, zona_frete_nome: zonaMatch.nome })
     } else if (value.bairro.trim() && semZona) {
-      // Só zera se havia frete de zona anterior (não manual)
       if (value.zona_frete_id) {
         onChange({ ...value, valor_frete: 0, zona_frete_id: null, zona_frete_nome: null })
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zonaMatch, semZona])
+
+  // De-duplica por logradouro+numero para não mostrar badges repetidos
+  const badges = enderecosExistentes
+    ? [...enderecosExistentes
+        .reduce((map, end) => {
+          const key = `${end.logradouro}|${end.numero ?? ''}`
+          if (!map.has(key)) map.set(key, end)
+          return map
+        }, new Map<string, EnderecoExistente>())
+        .values()]
+    : []
+
+  function usarEndereco(end: EnderecoExistente) {
+    setBadgeSelecionadoId(end.id)
+    setTermoBusca(end.logradouro)
+    onChange({
+      ...value,
+      apelido: end.apelido ?? '',
+      cep: end.cep ?? '',
+      logradouro: end.logradouro,
+      numero: end.numero ?? '',
+      bairro: end.bairro,
+      cidade: end.cidade,
+      estado: end.estado,
+      referencia: end.referencia ?? '',
+      latitude: end.latitude,
+      longitude: end.longitude,
+      zona_frete_id: end.zona_frete_id,
+    })
+  }
 
   async function handleCepChange(raw: string) {
     const mascarado = mascaraCep(raw)
@@ -94,39 +135,25 @@ export default function CampoEndereco({ value, onChange }: Props) {
       const dados = await buscarCep(digits)
       if (dados) {
         setTermoBusca(dados.logradouro)
-        onChange({
-          ...value,
-          cep: mascarado,
-          logradouro: dados.logradouro,
-          bairro: dados.bairro,
-          cidade: dados.cidade,
-          estado: dados.estado,
-        })
+        onChange({ ...value, cep: mascarado, logradouro: dados.logradouro, bairro: dados.bairro, cidade: dados.cidade, estado: dados.estado })
       }
     }
   }
 
   function handleLogradouroChange(val: string) {
     setTermoBusca(val)
+    setBadgeSelecionadoId(null)
     onChange({ ...value, logradouro: val })
     setGeocAberto(val.trim().length >= 3)
   }
 
   function selecionarSugestao(s: { display_name: string; lat: string; lon: string; address: { road?: string; suburb?: string; neighbourhood?: string; city_district?: string } }) {
     const rua = s.address?.road ?? s.display_name.split(',')[0]?.trim()
-    // Nominatim coloca o bairro mais específico como 2º segmento do display_name,
-    // que é mais confiável do que address.suburb (que pode vir invertido)
     const bairroDisplayName = s.display_name.split(',')[1]?.trim()
     const bairroGeo = bairroDisplayName || s.address?.suburb || s.address?.neighbourhood || s.address?.city_district || value.bairro
     setTermoBusca(rua)
     setGeocAberto(false)
-    onChange({
-      ...value,
-      logradouro: rua,
-      bairro: bairroGeo,
-      latitude: parseFloat(s.lat),
-      longitude: parseFloat(s.lon),
-    })
+    onChange({ ...value, logradouro: rua, bairro: bairroGeo, latitude: parseFloat(s.lat), longitude: parseFloat(s.lon) })
   }
 
   function set(field: keyof EnderecoData, val: string | number | null) {
@@ -135,6 +162,29 @@ export default function CampoEndereco({ value, onChange }: Props) {
 
   return (
     <div className="space-y-3">
+      {/* Badges de endereços salvos */}
+      {badges.length > 0 && (
+        <div>
+          <p className="text-xs text-gray-500 mb-1.5">Endereços salvos</p>
+          <div className="flex flex-wrap gap-2">
+            {badges.map((end) => (
+              <button
+                key={end.id}
+                type="button"
+                onClick={() => usarEndereco(end)}
+                className={`text-xs px-3 py-1.5 rounded-full border transition ${
+                  badgeSelecionadoId === end.id
+                    ? 'bg-green-800 text-white border-green-800'
+                    : 'bg-white border-gray-300 text-gray-600 hover:border-green-700 hover:text-green-800'
+                }`}
+              >
+                {end.apelido || `${end.logradouro}${end.numero ? `, ${end.numero}` : ''}`}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* CEP */}
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -182,15 +232,10 @@ export default function CampoEndereco({ value, onChange }: Props) {
               const ruaExtraida = s.address?.road ?? s.display_name.split(',')[0]?.trim()
               const bairroExtraido = s.display_name.split(',')[1]?.trim() || s.address?.suburb || s.address?.neighbourhood || null
               return (
-                <li
-                  key={i}
-                  className="px-3 py-2 hover:bg-green-50 cursor-pointer"
-                  onMouseDown={(e) => { e.preventDefault(); selecionarSugestao(s) }}
-                >
+                <li key={i} className="px-3 py-2 hover:bg-green-50 cursor-pointer"
+                  onMouseDown={(e) => { e.preventDefault(); selecionarSugestao(s) }}>
                   <div className="text-sm text-gray-800">{ruaExtraida}</div>
-                  {bairroExtraido && (
-                    <div className="text-xs text-gray-500 mt-0.5">Bairro: {bairroExtraido}</div>
-                  )}
+                  {bairroExtraido && <div className="text-xs text-gray-500 mt-0.5">Bairro: {bairroExtraido}</div>}
                 </li>
               )
             })}
@@ -211,11 +256,7 @@ export default function CampoEndereco({ value, onChange }: Props) {
         </div>
         <div>
           <label className="form-label">Cidade / Estado</label>
-          <input
-            className="form-input bg-gray-50"
-            value={`${value.cidade} / ${value.estado}`}
-            readOnly
-          />
+          <input className="form-input bg-gray-50" value={`${value.cidade} / ${value.estado}`} readOnly />
         </div>
       </div>
 
@@ -229,6 +270,22 @@ export default function CampoEndereco({ value, onChange }: Props) {
           onChange={(e) => set('referencia', e.target.value)}
         />
       </div>
+
+      {/* Apelido */}
+      {value.logradouro.trim() && (
+        <div>
+          <label className="form-label">
+            Salvar endereço como{' '}
+            <span className="text-xs text-gray-400 font-normal">(apelido opcional)</span>
+          </label>
+          <input
+            className="form-input"
+            placeholder='Ex: "casa", "mãe", "trabalho"'
+            value={value.apelido}
+            onChange={(e) => set('apelido', e.target.value)}
+          />
+        </div>
+      )}
 
       {/* Badge de frete */}
       {value.bairro.trim() && (

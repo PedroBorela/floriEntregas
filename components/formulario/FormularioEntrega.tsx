@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import CampoProdutos, { type ItemPedido } from './CampoProdutos'
 import CampoCliente from './CampoCliente'
-import CampoEndereco, { type EnderecoData, ENDERECO_VAZIO } from '@/components/endereco/CampoEndereco'
+import CampoEndereco, { type EnderecoData, type EnderecoExistente, ENDERECO_VAZIO } from '@/components/endereco/CampoEndereco'
 import DatasEspeciais from '@/components/clientes/DatasEspeciais'
 import Modal from '@/components/ui/Modal'
 import { formatarMoeda } from '@/lib/formatters'
@@ -28,6 +28,7 @@ export default function FormularioEntrega() {
   const [clienteTelefone, setClienteTelefone] = useState('')
   const [clienteId, setClienteId] = useState<string | null>(null)
   const [clienteDatas, setClienteDatas] = useState<ClienteData[]>([])
+  const [clienteEnderecos, setClienteEnderecos] = useState<EnderecoExistente[]>([])
 
   const [itens, setItens] = useState<ItemPedido[]>([{ nome_produto: '', valor_unitario: 0, quantidade: 1 }])
 
@@ -75,6 +76,7 @@ export default function FormularioEntrega() {
         destinatario_nome: ePresente ? (destinatarioNome || null) : null,
         destinatario_telefone: ePresente ? (destinatarioTelefone || null) : null,
         cep: endereco.cep || null,
+        endereco_apelido: endereco.apelido || null,
         logradouro: endereco.logradouro || null,
         numero: endereco.numero || null,
         bairro: endereco.bairro || null,
@@ -118,6 +120,7 @@ export default function FormularioEntrega() {
       if (res.ok) {
         const json = await res.json()
         setClienteDatas(json.cliente.cliente_datas ?? [])
+        setClienteEnderecos(json.cliente.enderecos ?? [])
       }
     }
   }
@@ -127,6 +130,7 @@ export default function FormularioEntrega() {
     setClienteTelefone('')
     setClienteId(null)
     setClienteDatas([])
+    setClienteEnderecos([])
     setItens([{ nome_produto: '', valor_unitario: 0, quantidade: 1 }])
     setDataEntrega(hoje)
     setJanelaEntrega('tarde')
@@ -243,7 +247,7 @@ export default function FormularioEntrega() {
 
         <div className="section-card">
           <h2 className="section-title">Endereço de Entrega</h2>
-          <CampoEndereco value={endereco} onChange={setEndereco} />
+          <CampoEndereco value={endereco} onChange={setEndereco} enderecosExistentes={clienteEnderecos} />
         </div>
 
         <div className="section-card">
