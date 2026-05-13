@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/projetos_dev/**)",
+      "Read(//c/projetos_dev/flori/projeto_catalogo/**)",
+      "mcp__supabase__execute_sql"
+    ]
+  }
+}

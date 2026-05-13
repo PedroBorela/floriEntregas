@@ -1,73 +1,36 @@
-# Floricultura - Sistema de Gerenciamento de Pedidos
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Este projeto é uma aplicação web desenvolvida para auxiliar no gerenciamento de pedidos de uma floricultura. O sistema permite o cadastro de entregas e retiradas, impressão de cupons fiscais e visualização de um histórico de pedidos.
+## Getting Started
 
-## Funcionalidades
+First, run the development server:
 
-- **Formulário de Entrega**: Cadastro completo de pedidos para entrega, incluindo dados do cliente, destinatário, endereço e forma de pagamento.
-- **Formulário de Retirada**: Cadastro de pedidos para retirada na loja.
-- **Impressão de Cupom**: Geração automática de cupom fiscal para impressão.
-- **Histórico de Pedidos**: Visualização de todos os pedidos realizados, separados por data (hoje e anteriores).
-- **Integração com Banco de Dados**: Todos os pedidos são salvos em um banco de dados MongoDB.
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-## Tecnologias Utilizadas
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-- **Frontend**: HTML5, CSS3, JavaScript
-- **Backend**: Node.js, Express
-- **Banco de Dados**: MongoDB
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Pré-requisitos
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-Para rodar este projeto em seu computador, você precisará ter instalado:
+## Learn More
 
-1.  **Node.js**: [Download Node.js](https://nodejs.org/) (Recomendado versão LTS).
-2.  **MongoDB**: [Download MongoDB Community Server](https://www.mongodb.com/try/download/community).
-    - Certifique-se de que o MongoDB esteja instalado e rodando na porta padrão (`27017`).
+To learn more about Next.js, take a look at the following resources:
 
-## Como Rodar a Aplicação
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-Siga o passo a passo abaixo para configurar e executar o projeto:
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-### 1. Instalação
+## Deploy on Vercel
 
-1.  Baixe ou clone este projeto para uma pasta em seu computador.
-2.  Abra o terminal (Prompt de Comando ou PowerShell) e navegue até a pasta do projeto.
-3.  Instale as dependências do projeto executando o seguinte comando:
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-    ```bash
-    npm install
-    ```
-
-### 2. Executando o Servidor
-
-1.  Certifique-se de que o serviço do MongoDB está em execução.
-2.  No terminal, dentro da pasta do projeto, inicie o servidor backend com o comando:
-
-    ```bash
-    npm start
-    ```
-    
-    Ou alternativamente:
-    ```bash
-    node server.js
-    ```
-
-3.  Você verá a mensagem: `Server is running on http://localhost:3000` e `MongoDB connected successfully`.
-
-### 3. Acessando o Sistema
-
-O sistema é composto por arquivos HTML estáticos que se comunicam com o servidor.
-
-1.  Vá até a pasta do projeto.
-2.  Abra o arquivo `form.html` no seu navegador (Chrome, Edge, Firefox, etc.) para acessar o formulário de entregas.
-3.  Você pode navegar entre as páginas "Entrega", "Retirada" e "Pedidos" através do menu superior.
-
-## Estrutura do Projeto
-
-- `server.js`: Arquivo principal do servidor backend.
-- `form.html`: Página do formulário de entrega.
-- `formRetirada.html`: Página do formulário de retirada.
-- `pedidos.html`: Página de listagem de pedidos.
-- `script.js`: Lógica do formulário de entrega.
-- `pedidos.js`: Lógica da listagem de pedidos.
-- `style.css` / `pedidos.css`: Estilos da aplicação.
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
