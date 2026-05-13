@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import CampoProdutos, { type ItemPedido } from './CampoProdutos'
 import CampoCliente from './CampoCliente'
@@ -45,6 +45,30 @@ export default function FormularioRetirada() {
   const [pagamentoTipo, setPagamentoTipo] = useState<PagamentoTipo>('pix')
 
   const [observacoes, setObservacoes] = useState('')
+
+  const telefoneTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (clienteId) return
+    const digitos = clienteTelefone.replace(/\D/g, '')
+    if (digitos.length < 10) return
+    if (telefoneTimeoutRef.current) clearTimeout(telefoneTimeoutRef.current)
+    telefoneTimeoutRef.current = setTimeout(async () => {
+      const res = await fetch(`/api/clientes?busca=${encodeURIComponent(clienteTelefone)}`)
+      if (!res.ok) return
+      const json = await res.json()
+      const match = (json.clientes ?? []).find((c: any) =>
+        c.telefone.replace(/\D/g, '') === digitos
+      )
+      if (!match) return
+      const det = await fetch(`/api/clientes/${match.id}`)
+      if (!det.ok) return
+      const d = await det.json()
+      setClienteId(match.id)
+      setClienteDatas(d.cliente.cliente_datas ?? [])
+    }, 500)
+    return () => { if (telefoneTimeoutRef.current) clearTimeout(telefoneTimeoutRef.current) }
+  }, [clienteTelefone, clienteId])
 
   const valorProdutos = itens.reduce((s, i) => s + i.valor_unitario * i.quantidade, 0)
   const valorPagoNum = parseFloat(valorPago) || 0
@@ -139,7 +163,7 @@ export default function FormularioRetirada() {
             onTelefoneChange={setClienteTelefone}
             onClienteSelect={handleClienteSelect}
           />
-          {clienteId && (
+          {clienteNome.trim() && (
             <div className="mt-4 pt-4 border-t border-gray-100">
               <p className="text-sm font-medium text-gray-700 mb-2">Datas especiais do cliente</p>
               <DatasEspeciais clienteId={clienteId} datas={clienteDatas} onChange={setClienteDatas} />

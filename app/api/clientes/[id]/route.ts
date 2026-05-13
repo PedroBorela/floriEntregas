@@ -32,7 +32,7 @@ export async function GET(
 
   const { data, error } = await supabase
     .from('clientes')
-    .select('*, cliente_datas(*), enderecos(id, apelido, logradouro, numero, bairro, cidade, estado, cep, referencia, latitude, longitude, zona_frete_id), pedidos(id, codigo, status, valor_total, data_entrega, created_at)')
+    .select('*, cliente_datas(*), enderecos(id, apelido, logradouro, numero, bairro, cidade, estado, cep, referencia, latitude, longitude), pedidos(id, codigo, status, valor_total, data_entrega, created_at)')
     .eq('id', id)
     .order('created_at', { referencedTable: 'pedidos', ascending: false })
     .single()

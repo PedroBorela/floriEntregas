@@ -6,7 +6,7 @@ import type { ClienteData } from '@/lib/types'
 const SUGESTOES = ['Aniversário', 'Data de casamento']
 
 interface Props {
-  clienteId: string
+  clienteId: string | null
   datas: ClienteData[]
   onChange: (datas: ClienteData[]) => void
 }
@@ -29,6 +29,7 @@ export default function DatasEspeciais({ clienteId, datas, onChange }: Props) {
   const [erro, setErro] = useState('')
 
   async function adicionarData() {
+    if (!clienteId) return
     if (!novoNome.trim() || !novaData) {
       setErro('Informe o nome e a data.')
       return
@@ -167,7 +168,8 @@ export default function DatasEspeciais({ clienteId, datas, onChange }: Props) {
             <button
               type="button"
               onClick={adicionarData}
-              disabled={salvando}
+              disabled={salvando || !clienteId}
+              title={!clienteId ? 'Selecione um cliente existente para adicionar datas' : undefined}
               className="px-4 py-1.5 text-sm font-medium text-white bg-green-800 rounded-lg hover:bg-green-900 disabled:opacity-50 shrink-0"
             >
               {salvando ? '...' : '+ Adicionar'}
@@ -175,6 +177,9 @@ export default function DatasEspeciais({ clienteId, datas, onChange }: Props) {
           </div>
         </div>
 
+        {!clienteId && (
+          <p className="text-xs text-amber-600">Cliente novo — datas poderão ser adicionadas após salvar o pedido.</p>
+        )}
         {erro && <p className="text-xs text-red-500">{erro}</p>}
       </div>
     </div>

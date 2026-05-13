@@ -34,7 +34,6 @@ export interface EnderecoExistente {
   referencia: string | null
   latitude: number | null
   longitude: number | null
-  zona_frete_id: string | null
 }
 
 export const ENDERECO_VAZIO: EnderecoData = {
@@ -121,7 +120,7 @@ export default function CampoEndereco({ value, onChange, enderecosExistentes }: 
       referencia: end.referencia ?? '',
       latitude: end.latitude,
       longitude: end.longitude,
-      zona_frete_id: end.zona_frete_id,
+      zona_frete_id: null,
     })
   }
 
