@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation'
 import CampoProdutos, { type ItemPedido } from './CampoProdutos'
 import CampoCliente from './CampoCliente'
 import CampoEndereco, { type EnderecoData, type EnderecoExistente, ENDERECO_VAZIO } from '@/components/endereco/CampoEndereco'
-import DatasEspeciais from '@/components/clientes/DatasEspeciais'
+import DatasEspeciaisInput, { type DataEspecialRascunho } from '@/components/clientes/DatasEspeciaisInput'
 import Modal from '@/components/ui/Modal'
 import { formatarMoeda } from '@/lib/formatters'
-import type { PagamentoTipo, ClienteData } from '@/lib/types'
+import type { PagamentoTipo } from '@/lib/types'
 
 const hoje = new Date().toISOString().split('T')[0]
 
@@ -27,8 +27,8 @@ export default function FormularioEntrega() {
   const [clienteNome, setClienteNome] = useState('')
   const [clienteTelefone, setClienteTelefone] = useState('')
   const [clienteId, setClienteId] = useState<string | null>(null)
-  const [clienteDatas, setClienteDatas] = useState<ClienteData[]>([])
   const [clienteEnderecos, setClienteEnderecos] = useState<EnderecoExistente[]>([])
+  const [datasEspeciais, setDatasEspeciais] = useState<DataEspecialRascunho[]>([{ nome: '', data: '' }])
 
   const [itens, setItens] = useState<ItemPedido[]>([{ nome_produto: '', valor_unitario: 0, quantidade: 1 }])
 
@@ -70,7 +70,6 @@ export default function FormularioEntrega() {
       if (!det.ok) return
       const d = await det.json()
       setClienteId(match.id)
-      setClienteDatas(d.cliente.cliente_datas ?? [])
       setClienteEnderecos(d.cliente.enderecos ?? [])
     }, 500)
     return () => { if (telefoneTimeoutRef.current) clearTimeout(telefoneTimeoutRef.current) }
@@ -130,6 +129,15 @@ export default function FormularioEntrega() {
     setLoading(false)
     if (res.ok) {
       const json = await res.json()
+      const cid = clienteId ?? json.pedido.cliente_id
+      const datasValidas = datasEspeciais.filter(d => d.nome.trim() && d.data)
+      for (const d of datasValidas) {
+        await fetch(`/api/clientes/${cid}/datas`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome: d.nome.trim(), data: d.data }),
+        })
+      }
       setCodigoPedido(json.pedido.codigo)
     } else {
       const err = await res.json()
@@ -139,12 +147,10 @@ export default function FormularioEntrega() {
 
   async function handleClienteSelect(id: string | null) {
     setClienteId(id)
-    setClienteDatas([])
     if (id) {
       const res = await fetch(`/api/clientes/${id}`)
       if (res.ok) {
         const json = await res.json()
-        setClienteDatas(json.cliente.cliente_datas ?? [])
         setClienteEnderecos(json.cliente.enderecos ?? [])
       }
     }
@@ -154,8 +160,8 @@ export default function FormularioEntrega() {
     setClienteNome('')
     setClienteTelefone('')
     setClienteId(null)
-    setClienteDatas([])
     setClienteEnderecos([])
+    setDatasEspeciais([{ nome: '', data: '' }])
     setItens([{ nome_produto: '', valor_unitario: 0, quantidade: 1 }])
     setDataEntrega(hoje)
     setJanelaEntrega('tarde')
@@ -188,7 +194,7 @@ export default function FormularioEntrega() {
           />
           <div className="mt-4 pt-4 border-t border-gray-100">
             <p className="text-sm font-medium text-gray-700 mb-2">Datas especiais do cliente</p>
-            <DatasEspeciais clienteId={clienteId} datas={clienteDatas} onChange={setClienteDatas} />
+            <DatasEspeciaisInput value={datasEspeciais} onChange={setDatasEspeciais} />
           </div>
         </div>
 
