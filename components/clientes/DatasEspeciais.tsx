@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Gift } from 'lucide-react'
 import type { ClienteData } from '@/lib/types'
 
 const SUGESTOES = ['Aniversário', 'Data de casamento']
@@ -93,7 +94,7 @@ export default function DatasEspeciais({ clienteId, datas, onChange }: Props) {
             return (
               <li key={d.id} className="flex items-center justify-between py-2.5 gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-lg shrink-0">🎉</span>
+                  <Gift size={18} className="shrink-0 text-gray-400" />
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-gray-800">{d.nome}</p>
                     <p className="text-xs text-gray-500">{formatarDataCompleta(d.data)}</p>

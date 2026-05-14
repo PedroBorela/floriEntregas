@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { Printer } from 'lucide-react'
 import { useReactToPrint } from 'react-to-print'
 import { supabase } from '@/lib/supabase'
 import { formatarDataHora } from '@/lib/formatters'
@@ -50,7 +51,7 @@ export default function BotaoImprimir({ pedido }: Props) {
             : 'bg-green-800 text-white hover:bg-green-900'
         }`}
       >
-        <span>🖨️</span>
+        <Printer size={16} />
         {impresso ? 'Reimprimir comanda' : 'Imprimir comanda'}
       </button>
 

@@ -1,6 +1,8 @@
 'use client'
 
 import { use, useEffect, useState } from 'react'
+import { Clock, Scissors, Truck, CheckCircle2, XCircle, Package, Calendar, User, MapPin, Heart, Leaf } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { formatarData } from '@/lib/formatters'
 
 interface PedidoPublico {
@@ -18,13 +20,22 @@ interface PedidoPublico {
   referencia: string | null
 }
 
-const STATUS_INFO: Record<string, { label: string; cor: string; icone: string }> = {
-  pendente:     { label: 'Pendente',       cor: 'bg-gray-100 text-gray-600',   icone: '⏳' },
-  em_preparo:   { label: 'Em preparo',     cor: 'bg-blue-100 text-blue-700',   icone: '🌸' },
-  saiu_entrega: { label: 'Saiu para entrega', cor: 'bg-amber-100 text-amber-700', icone: '🛵' },
-  entregue:     { label: 'Entregue',       cor: 'bg-green-100 text-green-700', icone: '✅' },
-  retirado:     { label: 'Retirado',       cor: 'bg-green-100 text-green-700', icone: '✅' },
-  cancelado:    { label: 'Cancelado',      cor: 'bg-red-100 text-red-600',     icone: '❌' },
+const STATUS_INFO: Record<string, { label: string; cor: string }> = {
+  pendente:     { label: 'Pendente',          cor: 'bg-gray-100 text-gray-600'   },
+  em_preparo:   { label: 'Em preparo',        cor: 'bg-blue-100 text-blue-700'   },
+  saiu_entrega: { label: 'Saiu para entrega', cor: 'bg-amber-100 text-amber-700' },
+  entregue:     { label: 'Entregue',          cor: 'bg-green-100 text-green-700' },
+  retirado:     { label: 'Retirado',          cor: 'bg-green-100 text-green-700' },
+  cancelado:    { label: 'Cancelado',         cor: 'bg-red-100 text-red-600'     },
+}
+
+const STATUS_ICONE: Record<string, LucideIcon> = {
+  pendente:     Clock,
+  em_preparo:   Scissors,
+  saiu_entrega: Truck,
+  entregue:     CheckCircle2,
+  retirado:     CheckCircle2,
+  cancelado:    XCircle,
 }
 
 export default function RastreioPedidoPage({ params }: { params: Promise<{ codigo: string }> }) {
@@ -62,7 +73,8 @@ export default function RastreioPedidoPage({ params }: { params: Promise<{ codig
     setConfirmando(false)
   }
 
-  const statusInfo = pedido ? (STATUS_INFO[pedido.status] ?? { label: pedido.status, cor: 'bg-gray-100 text-gray-600', icone: '📦' }) : null
+  const statusInfo = pedido ? (STATUS_INFO[pedido.status] ?? { label: pedido.status, cor: 'bg-gray-100 text-gray-600' }) : null
+  const StatusIcone: LucideIcon = pedido ? (STATUS_ICONE[pedido.status] ?? Package) : Package
   const podeCofirmar = pedido?.status === 'saiu_entrega' && !confirmado
 
   return (
@@ -81,7 +93,7 @@ export default function RastreioPedidoPage({ params }: { params: Promise<{ codig
 
       {notFound && (
         <div className="w-full max-w-sm bg-white rounded-2xl p-8 text-center space-y-2">
-          <p className="text-4xl">🌿</p>
+          <Leaf size={40} className="mx-auto text-gray-300" />
           <p className="font-semibold text-gray-700">Pedido não encontrado</p>
           <p className="text-sm text-gray-400">Verifique o código do pedido.</p>
         </div>
@@ -99,7 +111,7 @@ export default function RastreioPedidoPage({ params }: { params: Promise<{ codig
                 ? 'bg-amber-50'
                 : 'bg-gray-50'
             }`}>
-              <span className="text-2xl">{statusInfo.icone}</span>
+              <StatusIcone size={24} />
               <div>
                 <p className="text-xs text-gray-400">Status</p>
                 <p className="font-bold text-gray-800">{confirmado ? 'Entregue' : statusInfo.label}</p>
@@ -116,7 +128,7 @@ export default function RastreioPedidoPage({ params }: { params: Promise<{ codig
               {/* Data/horário */}
               {(pedido.data_entrega || pedido.horario_entrega) && (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span>📅</span>
+                  <Calendar size={16} className="shrink-0" />
                   <span>
                     {pedido.data_entrega && formatarData(pedido.data_entrega)}
                     {pedido.horario_entrega && ` — ${pedido.horario_entrega}`}
@@ -127,7 +139,7 @@ export default function RastreioPedidoPage({ params }: { params: Promise<{ codig
               {/* Destinatário */}
               {pedido.tipo === 'entrega' && (
                 <div className="flex items-start gap-2 text-sm text-gray-600">
-                  <span className="mt-0.5">👤</span>
+                  <User size={16} className="mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs text-gray-400">Destinatário</p>
                     <p className="font-medium text-gray-800">{pedido.destinatario_nome ?? pedido.cliente_nome}</p>
@@ -138,7 +150,7 @@ export default function RastreioPedidoPage({ params }: { params: Promise<{ codig
               {/* Endereço */}
               {pedido.logradouro && (
                 <div className="flex items-start gap-2 text-sm text-gray-600">
-                  <span className="mt-0.5">📍</span>
+                  <MapPin size={16} className="mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs text-gray-400">Endereço</p>
                     <p className="font-medium text-gray-800">
@@ -166,7 +178,7 @@ export default function RastreioPedidoPage({ params }: { params: Promise<{ codig
           {/* Confirmação feita */}
           {(confirmado || (!podeCofirmar && (pedido.status === 'entregue' || pedido.status === 'retirado'))) && (
             <div className="bg-green-500 rounded-2xl px-5 py-4 text-center text-white shadow-lg">
-              <p className="text-2xl mb-1">🌷</p>
+              <Heart size={28} className="mx-auto mb-1" />
               <p className="font-bold text-lg">Entrega confirmada!</p>
               <p className="text-green-100 text-sm mt-1">Obrigado por usar a Natureza Em Flores.</p>
             </div>

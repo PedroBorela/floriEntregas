@@ -31,13 +31,15 @@ export default function ComandaImpressao({ pedido: p, baseUrl }: Props) {
       {/* Código + tipo */}
       <div style={{ textAlign: 'center', margin: '6px 0' }}>
         <div style={{ fontWeight: 'bold', fontSize: '20px', letterSpacing: '3px' }}>{p.codigo}</div>
-        <div style={{ fontSize: '11px', marginTop: '2px', textTransform: 'uppercase', fontWeight: 'bold' }}>
-          {p.tipo === 'entrega' ? '📦 ENTREGA' : '🛍️ RETIRADA'}
+        <div style={{ fontSize: '11px', marginTop: '4px' }}>
+          <span style={{ fontWeight: 'bold', textTransform: 'uppercase', border: '1px solid #000', padding: '1px 8px' }}>
+            {p.tipo === 'entrega' ? 'ENTREGA' : 'RETIRADA'}
+          </span>
         </div>
       </div>
 
       {/* QR Code */}
-      <div style={{ textAlign: 'center', margin: '4px 0 8px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0 8px' }}>
         <QRCodeSVG value={`${baseUrl}/p/${p.codigo}`} size={80} />
       </div>
 

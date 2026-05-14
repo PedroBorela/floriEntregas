@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { Gift } from 'lucide-react'
 import type { Cliente } from '@/lib/types'
 
 export default function ClientesPage() {
@@ -87,7 +88,7 @@ export default function ClientesPage() {
                             ? 'bg-amber-100 text-amber-700'
                             : 'bg-blue-50 text-blue-600'
                         }`}>
-                          🎉 {prox.nome} {prox.diasAte === 0 ? 'hoje!' : `em ${prox.diasAte}d`}
+                          <Gift size={12} className="inline-block mr-1" />{prox.nome} {prox.diasAte === 0 ? 'hoje!' : `em ${prox.diasAte}d`}
                         </div>
                       )}
                     </div>

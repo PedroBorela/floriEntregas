@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Calendar, Printer } from 'lucide-react'
 import StatusBadge from '@/components/ui/StatusBadge'
 import { formatarMoeda, formatarDataHora, formatarData } from '@/lib/formatters'
 import type { Pedido } from '@/lib/types'
@@ -50,8 +51,15 @@ export default function CardPedido({ pedido }: { pedido: Pedido }) {
         <div className="flex items-center gap-3 mt-3 text-xs text-gray-500">
           <span className="uppercase tracking-wide">{pedido.tipo}</span>
           {pedido.data_entrega && (
-            <span>📅 {formatarData(pedido.data_entrega)}{pedido.horario_entrega ? ` — ${pedido.horario_entrega}` : ''}</span>
+            <span className="flex items-center gap-1">
+              <Calendar size={11} />
+              {formatarData(pedido.data_entrega)}{pedido.horario_entrega ? ` — ${pedido.horario_entrega}` : ''}
+            </span>
           )}
+          {pedido.impresso
+            ? <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-semibold"><Printer size={10} />Impresso</span>
+            : <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 font-semibold"><Printer size={10} />Não impresso</span>
+          }
           <span className="ml-auto">{formatarDataHora(pedido.created_at)}</span>
         </div>
       </div>
