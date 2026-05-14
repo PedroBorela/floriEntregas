@@ -1,25 +1,97 @@
 'use client'
 
-import { useState, Suspense, lazy } from 'react'
+import { useState, useEffect, useRef, Suspense, lazy } from 'react'
 import ListaPedidos from '@/components/pedidos/ListaPedidos'
 import PainelStatus from '@/components/pedidos/PainelStatus'
 import { usePedidosDia } from '@/hooks/usePedidosDia'
 import { useRouter } from 'next/navigation'
+import type { Pedido } from '@/lib/types'
 
 const MapaEntregas = lazy(() => import('@/components/mapa/MapaEntregas'))
 
-type Tab = 'lista' | 'mapa'
+type Tab = 'lista' | 'amanha' | 'mapa'
+
+function formatLocal(d: Date) {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
 
 export default function PaginaPedidos() {
   const [tab, setTab] = useState<Tab>('lista')
+
+  const amanhaDate = new Date()
+  amanhaDate.setDate(amanhaDate.getDate() + 1)
+  const amanha = formatLocal(amanhaDate)
   const { pedidos, loading, avancarStatus } = usePedidosDia()
   const router = useRouter()
+
+  // Coordenadas geocodificadas on-demand para pedidos sem lat/lon
+  const [coordsExtras, setCoordsExtras] = useState<Record<string, { lat: number; lng: number }>>({})
+  const geocodificadosRef = useRef<Set<string>>(new Set())
+
+  useEffect(() => {
+    if (tab !== 'mapa' || loading) return
+
+    const semCoords = pedidos.filter(
+      (p) =>
+        p.tipo === 'entrega' &&
+        p.latitude == null &&
+        (p.logradouro || p.cep) &&
+        !geocodificadosRef.current.has(p.id)
+    )
+
+    if (!semCoords.length) return
+
+    // Marca como tentados para evitar re-execução
+    semCoords.forEach((p) => geocodificadosRef.current.add(p.id))
+
+    let cancelled = false
+
+    ;(async () => {
+      for (const p of semCoords) {
+        if (cancelled) break
+
+        const q = [p.logradouro, p.numero, p.bairro].filter(Boolean).join(', ')
+        if (!q) continue
+
+        try {
+          const sp = new URLSearchParams({ q })
+          if (p.cidade) sp.set('cidade', p.cidade)
+          const res = await fetch(`/api/geocoding?${sp}`)
+          if (!res.ok || cancelled) continue
+          const data = await res.json()
+          if (Array.isArray(data) && data.length > 0 && !cancelled) {
+            setCoordsExtras((prev) => ({
+              ...prev,
+              [p.id]: { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) },
+            }))
+          }
+        } catch {
+          // geocoding falhou para este pedido, continua
+        }
+
+        // Nominatim: máx 1 req/s
+        if (!cancelled) await new Promise((r) => setTimeout(r, 1100))
+      }
+    })()
+
+    return () => { cancelled = true }
+  }, [tab, pedidos, loading])
+
+  // Mescla coordenadas extras nos pedidos que não tinham
+  const pedidosComCoords: Pedido[] = pedidos.map((p) => {
+    if (p.latitude != null || !coordsExtras[p.id]) return p
+    return { ...p, latitude: coordsExtras[p.id].lat, longitude: coordsExtras[p.id].lng }
+  })
 
   return (
     <div>
       <div className="flex gap-1 mb-6 p-1 bg-gray-100 rounded-lg w-fit">
         {([
           { value: 'lista', label: 'Lista' },
+          { value: 'amanha', label: 'Amanhã' },
           { value: 'mapa', label: `Mapa do Dia${pedidos.length ? ` (${pedidos.length})` : ''}` },
         ] as { value: Tab; label: string }[]).map((t) => (
           <button
@@ -36,6 +108,8 @@ export default function PaginaPedidos() {
 
       {tab === 'lista' && <ListaPedidos />}
 
+      {tab === 'amanha' && <ListaPedidos key="amanha" dataInicioPadrao={amanha} dataFimPadrao={amanha} />}
+
       {tab === 'mapa' && (
         <div className="space-y-4">
           {loading ? (
@@ -48,12 +122,12 @@ export default function PaginaPedidos() {
                 </div>
               }>
                 <MapaEntregas
-                  pedidos={pedidos.filter((p) => p.tipo === 'entrega')}
+                  pedidos={pedidosComCoords.filter((p) => p.tipo === 'entrega')}
                   onClickPedido={(codigo) => router.push(`/pedidos/${codigo}`)}
                 />
               </Suspense>
 
-              <PainelStatus pedidos={pedidos} onAvancar={avancarStatus} />
+              <PainelStatus pedidos={pedidosComCoords} onAvancar={avancarStatus} />
             </>
           )}
         </div>

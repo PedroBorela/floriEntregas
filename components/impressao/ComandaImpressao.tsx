@@ -148,22 +148,36 @@ export default function ComandaImpressao({ pedido: p, baseUrl }: Props) {
       {/* Pagamento */}
       <div style={{ fontSize: '11px', margin: '3px 0' }}>
         <b>Pagamento: </b>
-        <span style={{ fontWeight: p.pago ? 'bold' : 'normal' }}>
-          {p.pagamento_parcial ? 'PARCIAL' : p.pago ? 'PAGO' : 'NÃO PAGO'}
-        </span>
-        {p.pagamento_tipo && ` — ${LABELS_PAG[p.pagamento_tipo] ?? p.pagamento_tipo}`}
+        {p.pagamento_parcial ? (
+          <span>PARCIAL{p.pagamento_tipo && ` — ${LABELS_PAG[p.pagamento_tipo] ?? p.pagamento_tipo}`}</span>
+        ) : p.pago ? (
+          <span style={{ fontWeight: 'bold' }}>PAGO{p.pagamento_tipo && ` — ${LABELS_PAG[p.pagamento_tipo] ?? p.pagamento_tipo}`}</span>
+        ) : (
+          <span style={{ fontWeight: 'bold' }}>
+            NÃO PAGO{p.pagamento_tipo
+              ? ` — cobrar em: ${LABELS_PAG[p.pagamento_tipo] ?? p.pagamento_tipo}`
+              : ' — forma não definida'}
+          </span>
+        )}
       </div>
 
       {/* Cartão */}
-      {p.tem_cartao && p.mensagem_cartao && (
-        <>
-          <div style={{ borderTop: '1px dashed #000', margin: '4px 0' }} />
+      <>
+        <div style={{ borderTop: '1px dashed #000', margin: '4px 0' }} />
+        {p.tem_cartao ? (
           <div style={{ fontSize: '11px', margin: '3px 0', border: '1px solid #000', padding: '4px' }}>
             <div style={{ fontWeight: 'bold', marginBottom: '2px' }}>Mensagem do cartão:</div>
-            <div style={{ fontStyle: 'italic' }}>{p.mensagem_cartao}</div>
+            {p.mensagem_cartao
+              ? <div style={{ fontStyle: 'italic' }}>{p.mensagem_cartao}</div>
+              : <div style={{ fontStyle: 'italic', color: '#666' }}>Sem mensagem definida</div>
+            }
           </div>
-        </>
-      )}
+        ) : (
+          <div style={{ fontSize: '11px', margin: '3px 0' }}>
+            <b>Cartão: </b>Sem cartão
+          </div>
+        )}
+      </>
 
       {/* Observações */}
       {p.observacoes && (

@@ -17,9 +17,17 @@ export interface ProdutoCatalogo {
   created_at: string
 }
 
+export interface Vendedor {
+  id: string
+  nome: string
+  ativo: boolean
+  created_at: string
+}
+
 export type PedidoStatus =
   | 'pendente'
   | 'em_preparo'
+  | 'pronto'
   | 'saiu_entrega'
   | 'entregue'
   | 'retirado'
@@ -34,6 +42,14 @@ export interface ClienteData {
   cliente_id: string
   nome: string
   data: string   // ISO date: YYYY-MM-DD
+  created_at: string
+}
+
+export interface ClienteNota {
+  id: string
+  cliente_id: string
+  tipo: 'preferencia' | 'observacao'
+  texto: string
   created_at: string
 }
 
@@ -99,6 +115,9 @@ export interface Pedido {
 
   valor_produtos: number
   valor_total: number
+
+  vendedor_id: string | null
+  vendedor?: { id: string; nome: string } | null
 
   impresso: boolean
   impresso_em: string | null

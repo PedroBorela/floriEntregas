@@ -29,10 +29,15 @@ export function useCep() {
         return null
       }
 
+      if (data.uf && data.uf !== 'MG') {
+        setErro('CEP fora de Minas Gerais')
+        return null
+      }
+
       return {
         logradouro: data.logradouro ?? '',
         bairro: data.bairro ?? '',
-        cidade: data.localidade ?? 'Manhuaçu',
+        cidade: data.localidade ?? '',
         estado: data.uf ?? 'MG',
       }
     } catch {

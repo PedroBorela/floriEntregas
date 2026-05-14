@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { formatarMoeda } from '@/lib/formatters'
 import type { Pedido } from '@/lib/types'
 
 type Tipo = 'confirmacao' | 'saiu_entrega'
@@ -15,35 +16,65 @@ function limparTelefone(tel: string) {
 }
 
 function gerarMensagem(pedido: Pedido, tipo: Tipo): string {
-  const horario = pedido.horario_entrega ? ` — ${pedido.horario_entrega}` : ''
   const data = pedido.data_entrega
     ? new Date(pedido.data_entrega + 'T00:00:00').toLocaleDateString('pt-BR')
     : ''
-  const previsao = data ? `${data}${horario}` : horario || 'a confirmar'
+  const previsao = [data, pedido.horario_entrega].filter(Boolean).join(' — ') || 'a confirmar'
 
   if (tipo === 'confirmacao') {
-    const itensTxt = pedido.pedido_itens
-      ?.map((i) => `  • ${i.quantidade}× ${i.nome_produto}`)
-      .join('\n') ?? ''
-    const endTxt = pedido.logradouro
-      ? `\n📍 ${pedido.logradouro}${pedido.numero ? `, ${pedido.numero}` : ''} — ${pedido.bairro}`
+    const itens = pedido.pedido_itens?.length
+      ? pedido.pedido_itens.map((i) => `  ${i.quantidade}x ${i.nome_produto}`).join('\n')
       : ''
-    return (
-      `Olá ${pedido.cliente_nome}! 🌸 Seu pedido na *Natureza em Flores* foi confirmado!\n\n` +
-      `📦 *Pedido:* ${pedido.codigo}\n` +
-      `${itensTxt ? itensTxt + '\n' : ''}` +
-      `📅 *Entrega:* ${previsao}` +
-      `${endTxt}\n` +
-      `💰 *Total:* R$ ${pedido.valor_total.toFixed(2).replace('.', ',')}\n\n` +
-      `Qualquer dúvida estamos à disposição! 💚`
-    )
+
+    const linhas: string[] = [
+      `Olá, ${pedido.cliente_nome}!`,
+      '',
+      'Seu pedido na Natureza em Flores foi confirmado.',
+      '',
+      `*Pedido:* ${pedido.codigo}`,
+    ]
+
+    if (itens) linhas.push(itens)
+    linhas.push('')
+
+    if (pedido.tipo === 'entrega') {
+      linhas.push(`*Entrega:* ${previsao}`)
+      if (pedido.logradouro) {
+        linhas.push(
+          `*Endereço:* ${pedido.logradouro}${pedido.numero ? `, ${pedido.numero}` : ''}${pedido.bairro ? ` — ${pedido.bairro}` : ''}`
+        )
+      }
+    } else {
+      linhas.push(`*Retirada:* ${previsao}`)
+    }
+
+    linhas.push('')
+    linhas.push(`*Total:* ${formatarMoeda(pedido.valor_total)}`)
+
+    if (pedido.pagamento_parcial) {
+      const restante = Math.max(0, pedido.valor_total - pedido.valor_pago)
+      linhas.push(`*Restante a pagar:* ${formatarMoeda(restante)}`)
+    } else if (!pedido.pago) {
+      linhas.push('*Pagamento:* a realizar')
+    }
+
+    linhas.push('')
+    linhas.push('Qualquer dúvida, é só chamar.')
+    linhas.push('Natureza em Flores')
+
+    return linhas.join('\n')
   }
 
-  return (
-    `Olá ${pedido.cliente_nome}! Seu pedido *${pedido.codigo}* da Natureza em Flores saiu para entrega. 🚚🌸\n\n` +
-    `📅 Previsão: ${previsao}\n\n` +
-    `Obrigado pela preferência! 💚`
-  )
+  // saiu_entrega
+  return [
+    `Olá, ${pedido.cliente_nome}!`,
+    '',
+    `Seu pedido *${pedido.codigo}* saiu para entrega agora.`,
+    '',
+    `*Previsão:* ${previsao}`,
+    '',
+    'Natureza em Flores',
+  ].join('\n')
 }
 
 export default function BotaoWhatsApp({ pedido, tipo }: Props) {
@@ -58,7 +89,6 @@ export default function BotaoWhatsApp({ pedido, tipo }: Props) {
     const msg = gerarMensagem(pedido, tipo)
     window.open(`https://wa.me/55${telefone}?text=${encodeURIComponent(msg)}`, '_blank')
 
-    // Registra o envio na API
     const campo = tipo === 'confirmacao' ? 'whatsapp_confirmacao' : 'whatsapp_saiu'
     await fetch(`/api/pedidos/${pedido.id}`, {
       method: 'PATCH',
@@ -79,13 +109,11 @@ export default function BotaoWhatsApp({ pedido, tipo }: Props) {
             : 'border-gray-200 text-gray-600 hover:bg-green-50 hover:border-green-300 hover:text-green-700'
         }`}
       >
-        <span>📲</span>
         {enviado ? 'Confirmação enviada' : 'Enviar confirmação WhatsApp'}
       </button>
     )
   }
 
-  // tipo === 'saiu_entrega'
   return (
     <button
       type="button"
@@ -96,7 +124,6 @@ export default function BotaoWhatsApp({ pedido, tipo }: Props) {
           : 'border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100'
       }`}
     >
-      <span>🚚</span>
       {enviado ? 'Aviso enviado' : 'Avisar comprador — saiu p/ entrega'}
     </button>
   )

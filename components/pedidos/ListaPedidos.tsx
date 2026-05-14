@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import CardPedido from './CardPedido'
 import type { Pedido, PedidoStatus } from '@/lib/types'
 
@@ -14,8 +14,13 @@ const statusOpcoes: { value: PedidoStatus | ''; label: string }[] = [
   { value: 'cancelado', label: 'Cancelado' },
 ]
 
-function formatISO(d: Date) {
-  return d.toISOString().split('T')[0]
+const STATUS_FINALIZADO = new Set<PedidoStatus>(['entregue', 'retirado', 'cancelado'])
+
+function formatLocal(d: Date) {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 function atalhosDatas() {
@@ -25,24 +30,32 @@ function atalhosDatas() {
   const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
   const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0)
   return {
-    hoje: { inicio: formatISO(hoje), fim: formatISO(hoje) },
-    semana: { inicio: formatISO(inicioSemana), fim: formatISO(hoje) },
-    mes: { inicio: formatISO(inicioMes), fim: formatISO(fimMes) },
+    hoje: { inicio: formatLocal(hoje), fim: formatLocal(hoje) },
+    semana: { inicio: formatLocal(inicioSemana), fim: formatLocal(hoje) },
+    mes: { inicio: formatLocal(inicioMes), fim: formatLocal(fimMes) },
   }
+}
+
+function labelData(iso: string, hoje: string, ontem: string): string {
+  if (iso === hoje) return 'Hoje'
+  if (iso === ontem) return 'Ontem'
+  const [, mm, dd] = iso.split('-')
+  return `${dd}/${mm}`
 }
 
 const pageSize = 20
 
-export default function ListaPedidos() {
+export default function ListaPedidos({ dataInicioPadrao = '', dataFimPadrao = '' }: { dataInicioPadrao?: string; dataFimPadrao?: string }) {
   const [pedidos, setPedidos] = useState<Pedido[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
+  const [finalizadosAbertos, setFinalizadosAbertos] = useState(false)
 
   const [busca, setBusca] = useState('')
   const [filtroStatus, setFiltroStatus] = useState<PedidoStatus | ''>('')
-  const [dataInicio, setDataInicio] = useState('')
-  const [dataFim, setDataFim] = useState('')
+  const [dataInicio, setDataInicio] = useState(dataInicioPadrao)
+  const [dataFim, setDataFim] = useState(dataFimPadrao)
   const [filtroTipo, setFiltroTipo] = useState('')
 
   const carregar = useCallback(async (p = 1) => {
@@ -78,13 +91,43 @@ export default function ListaPedidos() {
     setFiltroTipo('')
   }
 
+  const hoje = formatLocal(new Date())
+  const ontemDate = new Date()
+  ontemDate.setDate(ontemDate.getDate() - 1)
+  const ontem = formatLocal(ontemDate)
+
+  const { ativos, finalizados } = useMemo(() => {
+    const ativos: Pedido[] = []
+    const finalizados: Pedido[] = []
+    for (const p of pedidos) {
+      if (STATUS_FINALIZADO.has(p.status)) finalizados.push(p)
+      else ativos.push(p)
+    }
+    return { ativos, finalizados }
+  }, [pedidos])
+
+  // Group active orders by data_entrega (fallback: created_at date), today first
+  const gruposPorData = useMemo(() => {
+    const map = new Map<string, Pedido[]>()
+    for (const p of ativos) {
+      const key = p.data_entrega ?? p.created_at.slice(0, 10)
+      const arr = map.get(key) ?? []
+      arr.push(p)
+      map.set(key, arr)
+    }
+    return [...map.entries()].sort(([a], [b]) => {
+      if (a === hoje) return -1
+      if (b === hoje) return 1
+      return a.localeCompare(b)
+    })
+  }, [ativos, hoje])
+
   const totalPages = Math.ceil(total / pageSize)
   const temFiltroAtivo = busca || filtroStatus || dataInicio || dataFim || filtroTipo
 
   return (
     <div>
       <div className="section-card space-y-3">
-        {/* Busca por cliente (nome ou telefone) */}
         <div className="flex gap-2">
           <input
             className="form-input flex-1"
@@ -103,7 +146,6 @@ export default function ListaPedidos() {
           )}
         </div>
 
-        {/* Chips de status */}
         <div className="flex flex-wrap gap-1.5">
           {statusOpcoes.map((op) => (
             <button
@@ -120,7 +162,6 @@ export default function ListaPedidos() {
           ))}
         </div>
 
-        {/* Filtro de data */}
         <div className="space-y-2">
           <div className="flex gap-1.5 flex-wrap">
             {(['hoje', 'semana', 'mes'] as const).map((a) => {
@@ -181,8 +222,49 @@ export default function ListaPedidos() {
       ) : pedidos.length === 0 ? (
         <div className="text-center py-12 text-gray-400">Nenhum pedido encontrado.</div>
       ) : (
-        <div className="space-y-3">
-          {pedidos.map((p) => <CardPedido key={p.id} pedido={p} />)}
+        <div className="space-y-6 mt-2">
+          {gruposPorData.map(([data, lista]) => {
+            const isHoje = data === hoje
+            return (
+              <div key={data}>
+                <div className="flex items-center gap-3 mb-3">
+                  <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full whitespace-nowrap ${
+                    isHoje
+                      ? 'bg-green-800 text-white'
+                      : 'bg-gray-100 text-gray-500'
+                  }`}>
+                    {labelData(data, hoje, ontem)} — {lista.length} pedido{lista.length !== 1 ? 's' : ''}
+                  </span>
+                  <div className={`flex-1 h-px ${isHoje ? 'bg-green-200' : 'bg-gray-100'}`} />
+                </div>
+                <div className={`space-y-3 ${isHoje ? 'pl-2 border-l-2 border-green-200' : ''}`}>
+                  {lista.map((p) => <CardPedido key={p.id} pedido={p} />)}
+                </div>
+              </div>
+            )
+          })}
+
+          {finalizados.length > 0 && (
+            <div>
+              <button
+                onClick={() => setFinalizadosAbertos((v) => !v)}
+                className="flex items-center gap-3 w-full mb-3 group"
+              >
+                <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-gray-100 text-gray-400 group-hover:bg-gray-200 transition whitespace-nowrap">
+                  Finalizados — {finalizados.length} pedido{finalizados.length !== 1 ? 's' : ''}
+                </span>
+                <div className="flex-1 h-px bg-gray-100" />
+                <span className="text-xs text-gray-400 group-hover:text-gray-600 transition shrink-0">
+                  {finalizadosAbertos ? '▲ ocultar' : '▼ mostrar'}
+                </span>
+              </button>
+              {finalizadosAbertos && (
+                <div className="space-y-3 opacity-75">
+                  {finalizados.map((p) => <CardPedido key={p.id} pedido={p} />)}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

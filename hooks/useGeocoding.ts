@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { normalizar } from '@/lib/formatters'
 
 export interface SugestaoEndereco {
   display_name: string
@@ -11,6 +12,11 @@ export interface SugestaoEndereco {
     suburb?: string
     neighbourhood?: string
     city_district?: string
+    city?: string
+    town?: string
+    village?: string
+    municipality?: string
+    state?: string
   }
 }
 
@@ -22,7 +28,7 @@ export function useGeocoding(termo: string, delay = 500) {
   useEffect(() => {
     if (timer.current) clearTimeout(timer.current)
 
-    const q = termo.trim()
+    const q = normalizar(termo)
     if (q.length < 3) {
       setSugestoes([])
       return

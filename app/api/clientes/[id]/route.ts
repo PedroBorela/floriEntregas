@@ -32,7 +32,7 @@ export async function GET(
 
   const { data, error } = await supabase
     .from('clientes')
-    .select('*, cliente_datas(*), enderecos(id, apelido, logradouro, numero, bairro, cidade, estado, cep, referencia, latitude, longitude), pedidos(id, codigo, status, valor_total, data_entrega, created_at)')
+    .select('*, cliente_datas(*), cliente_notas(*), enderecos(id, apelido, logradouro, numero, bairro, cidade, estado, cep, referencia, latitude, longitude), pedidos(id, codigo, status, valor_total, data_entrega, created_at)')
     .eq('id', id)
     .order('created_at', { referencedTable: 'pedidos', ascending: false })
     .single()
@@ -47,11 +47,11 @@ export async function PATCH(
 ) {
   const { id } = await params
   const body = await req.json()
-  const { nome, telefone, whatsapp, preferencias, observacoes } = body
+  const { nome, telefone, whatsapp } = body
 
   const { data, error } = await supabase
     .from('clientes')
-    .update({ nome, telefone, whatsapp: whatsapp || null, preferencias: preferencias || null, observacoes: observacoes || null })
+    .update({ nome, telefone, whatsapp: whatsapp || null })
     .eq('id', id)
     .select()
     .single()

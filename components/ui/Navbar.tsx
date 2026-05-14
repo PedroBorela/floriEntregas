@@ -11,6 +11,7 @@ const tabs = [
   { href: '/clientes', label: 'Clientes' },
   { href: '/catalogo', label: 'Catálogo' },
   { href: '/analytics', label: 'Analytics' },
+  { href: '/vendedores', label: 'Vendedores' },
 ]
 
 export default function Navbar() {

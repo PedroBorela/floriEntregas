@@ -49,9 +49,13 @@ export async function POST(
     .single()
 
   if (error || !pedido) return NextResponse.json({ error: 'Pedido não encontrado' }, { status: 404 })
-  if (pedido.status !== 'saiu_entrega') {
-    return NextResponse.json({ error: 'Pedido não está em rota de entrega' }, { status: 400 })
+
+  const STATUS_FINAIS = ['entregue', 'retirado', 'cancelado']
+  if (STATUS_FINAIS.includes(pedido.status)) {
+    return NextResponse.json({ error: 'Pedido já finalizado' }, { status: 400 })
   }
+
+  const statusAnterior = pedido.status
 
   const { error: updErr } = await supabase
     .from('pedidos')
@@ -62,7 +66,7 @@ export async function POST(
 
   await supabase.from('pedido_status_log').insert({
     pedido_id: pedido.id,
-    status_anterior: 'saiu_entrega',
+    status_anterior: statusAnterior,
     status_novo: 'entregue',
     observacao: 'Confirmado via QR Code pelo entregador',
   })

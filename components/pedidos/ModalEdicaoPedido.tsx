@@ -2,9 +2,12 @@
 
 import { useState } from 'react'
 import Modal from '@/components/ui/Modal'
+import { useToast } from '@/components/ui/Toast'
 import CampoProdutos, { type ItemPedido } from '@/components/formulario/CampoProdutos'
 import CampoEndereco, { type EnderecoData } from '@/components/endereco/CampoEndereco'
+import ModalSeletorVendedor from '@/components/vendedores/ModalSeletorVendedor'
 import { formatarMoeda } from '@/lib/formatters'
+import { User } from 'lucide-react'
 import type { Pedido, PagamentoTipo } from '@/lib/types'
 
 const JANELAS = [
@@ -29,6 +32,7 @@ interface Props {
 }
 
 export default function ModalEdicaoPedido({ pedido, open, onClose, onSalvo }: Props) {
+  const { toast } = useToast()
   const horaInicial = horarioParaJanela(pedido.horario_entrega)
 
   const [clienteNome, setClienteNome] = useState(pedido.cliente_nome)
@@ -76,6 +80,9 @@ export default function ModalEdicaoPedido({ pedido, open, onClose, onSalvo }: Pr
   const [pagamentoTipo, setPagamentoTipo] = useState<PagamentoTipo>(pedido.pagamento_tipo ?? 'pix')
 
   const [observacoes, setObservacoes] = useState(pedido.observacoes ?? '')
+  const [vendedorId, setVendedorId] = useState<string | null>(pedido.vendedor_id ?? null)
+  const [vendedorNome, setVendedorNome] = useState<string | null>(pedido.vendedor?.nome ?? null)
+  const [modalVendedor, setModalVendedor] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const valorProdutos = itens.reduce((s, i) => s + i.valor_unitario * i.quantidade, 0)
@@ -85,7 +92,7 @@ export default function ModalEdicaoPedido({ pedido, open, onClose, onSalvo }: Pr
   async function handleSalvar() {
     const itensFilled = itens.filter((i) => i.nome_produto.trim())
     if (itensFilled.length === 0) {
-      alert('Adicione pelo menos um produto.')
+      toast('Adicione pelo menos um produto.', 'warning')
       return
     }
 
@@ -126,6 +133,7 @@ export default function ModalEdicaoPedido({ pedido, open, onClose, onSalvo }: Pr
         valor_frete: valorFrete,
         valor_total: valorTotal,
         observacoes: observacoes || null,
+        vendedor_id: vendedorId ?? null,
         itens: itensFilled,
       }),
     })
@@ -136,7 +144,7 @@ export default function ModalEdicaoPedido({ pedido, open, onClose, onSalvo }: Pr
       onClose()
     } else {
       const err = await res.json()
-      alert('Erro ao salvar: ' + err.error)
+      toast('Erro ao salvar: ' + err.error)
     }
   }
 
@@ -264,6 +272,21 @@ export default function ModalEdicaoPedido({ pedido, open, onClose, onSalvo }: Pr
           )}
         </div>
 
+        {/* Vendedor */}
+        <div>
+          <label className="form-label">Vendedor</label>
+          <button
+            type="button"
+            onClick={() => setModalVendedor(true)}
+            className="flex items-center gap-2 w-full form-input text-left text-sm"
+          >
+            <User size={14} className="text-gray-400 shrink-0" />
+            <span className={vendedorNome ? 'text-gray-800' : 'text-gray-400'}>
+              {vendedorNome ?? 'Nenhum vendedor'}
+            </span>
+          </button>
+        </div>
+
         {/* Observações */}
         <div>
           <label className="form-label">Observações</label>
@@ -276,6 +299,13 @@ export default function ModalEdicaoPedido({ pedido, open, onClose, onSalvo }: Pr
           <span className="font-bold text-green-900 text-lg">{formatarMoeda(valorTotal)}</span>
         </div>
       </div>
+
+      <ModalSeletorVendedor
+        open={modalVendedor}
+        onClose={() => setModalVendedor(false)}
+        onSelect={(v) => { setVendedorId(v?.id ?? null); setVendedorNome(v?.nome ?? null) }}
+        vendedorAtualId={vendedorId}
+      />
 
       <div className="flex gap-3 justify-end mt-4 pt-4 border-t border-gray-100">
         <button

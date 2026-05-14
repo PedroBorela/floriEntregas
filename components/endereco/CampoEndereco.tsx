@@ -44,7 +44,7 @@ export const ENDERECO_VAZIO: EnderecoData = {
   logradouro: '',
   numero: '',
   bairro: '',
-  cidade: 'Manhuaçu',
+  cidade: '',
   estado: 'MG',
   referencia: '',
   latitude: null,
@@ -149,13 +149,14 @@ export default function CampoEndereco({ value, onChange, enderecosExistentes }: 
     setGeocAberto(val.trim().length >= 3)
   }
 
-  function selecionarSugestao(s: { display_name: string; lat: string; lon: string; address: { road?: string; suburb?: string; neighbourhood?: string; city_district?: string } }) {
+  function selecionarSugestao(s: { display_name: string; lat: string; lon: string; address: { road?: string; suburb?: string; neighbourhood?: string; city_district?: string; city?: string; town?: string; village?: string; municipality?: string } }) {
     const rua = s.address?.road ?? s.display_name.split(',')[0]?.trim()
     const bairroDisplayName = s.display_name.split(',')[1]?.trim()
     const bairroGeo = bairroDisplayName || s.address?.suburb || s.address?.neighbourhood || s.address?.city_district || value.bairro
+    const cidadeGeo = s.address?.city || s.address?.town || s.address?.village || s.address?.municipality || value.cidade
     setTermoBusca(rua)
     setGeocAberto(false)
-    onChange({ ...value, endereco_id: null, logradouro: rua, bairro: bairroGeo, latitude: parseFloat(s.lat), longitude: parseFloat(s.lon) })
+    onChange({ ...value, endereco_id: null, logradouro: rua, bairro: bairroGeo, cidade: cidadeGeo, latitude: parseFloat(s.lat), longitude: parseFloat(s.lon) })
   }
 
   function set(field: keyof EnderecoData, val: string | number | null) {
@@ -257,8 +258,13 @@ export default function CampoEndereco({ value, onChange, enderecosExistentes }: 
           />
         </div>
         <div>
-          <label className="form-label">Cidade / Estado</label>
-          <input className="form-input bg-gray-50" value={`${value.cidade} / ${value.estado}`} readOnly />
+          <label className="form-label">Cidade</label>
+          <input
+            className="form-input"
+            placeholder="Cidade"
+            value={value.cidade}
+            onChange={(e) => set('cidade', e.target.value)}
+          />
         </div>
       </div>
 
@@ -293,9 +299,30 @@ export default function CampoEndereco({ value, onChange, enderecosExistentes }: 
       {value.bairro.trim() && (
         <div className="mt-1">
           {zonaMatch ? (
-            <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <span className="text-green-700 text-sm font-medium">Frete — {zonaMatch.nome}</span>
-              <span className="ml-auto font-bold text-green-900">{formatarMoeda(zonaMatch.valor)}</span>
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-green-700 text-sm font-medium">Frete — {zonaMatch.nome}</span>
+                {value.valor_frete !== zonaMatch.valor && (
+                  <button
+                    type="button"
+                    onClick={() => set('valor_frete', zonaMatch.valor)}
+                    className="text-xs text-gray-400 hover:text-green-700 transition"
+                  >
+                    Restaurar padrão ({formatarMoeda(zonaMatch.valor)})
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">R$</span>
+                <input
+                  type="number"
+                  className="form-input w-28"
+                  min="0"
+                  step="0.50"
+                  value={value.valor_frete || ''}
+                  onChange={(e) => set('valor_frete', parseFloat(e.target.value) || 0)}
+                />
+              </div>
             </div>
           ) : semZona ? (
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg space-y-2">

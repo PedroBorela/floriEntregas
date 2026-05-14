@@ -1,7 +1,7 @@
 'use client'
 
 import { use, useEffect, useState } from 'react'
-import { Clock, Scissors, Truck, CheckCircle2, XCircle, Package, Calendar, User, MapPin, Heart, Leaf } from 'lucide-react'
+import { Clock, Scissors, Truck, CheckCircle2, XCircle, Package, PackageCheck, Calendar, User, MapPin, Heart, Leaf } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { formatarData } from '@/lib/formatters'
 
@@ -21,9 +21,10 @@ interface PedidoPublico {
 }
 
 const STATUS_INFO: Record<string, { label: string; cor: string }> = {
-  pendente:     { label: 'Pendente',          cor: 'bg-gray-100 text-gray-600'   },
-  em_preparo:   { label: 'Em preparo',        cor: 'bg-blue-100 text-blue-700'   },
-  saiu_entrega: { label: 'Saiu para entrega', cor: 'bg-amber-100 text-amber-700' },
+  pendente:     { label: 'Pendente',          cor: 'bg-gray-100 text-gray-600'    },
+  em_preparo:   { label: 'Em preparo',        cor: 'bg-yellow-100 text-yellow-700'},
+  pronto:       { label: 'Pronto',            cor: 'bg-blue-100 text-blue-700'   },
+  saiu_entrega: { label: 'Saiu para entrega', cor: 'bg-orange-100 text-orange-700'},
   entregue:     { label: 'Entregue',          cor: 'bg-green-100 text-green-700' },
   retirado:     { label: 'Retirado',          cor: 'bg-green-100 text-green-700' },
   cancelado:    { label: 'Cancelado',         cor: 'bg-red-100 text-red-600'     },
@@ -32,6 +33,7 @@ const STATUS_INFO: Record<string, { label: string; cor: string }> = {
 const STATUS_ICONE: Record<string, LucideIcon> = {
   pendente:     Clock,
   em_preparo:   Scissors,
+  pronto:       PackageCheck,
   saiu_entrega: Truck,
   entregue:     CheckCircle2,
   retirado:     CheckCircle2,
@@ -75,7 +77,8 @@ export default function RastreioPedidoPage({ params }: { params: Promise<{ codig
 
   const statusInfo = pedido ? (STATUS_INFO[pedido.status] ?? { label: pedido.status, cor: 'bg-gray-100 text-gray-600' }) : null
   const StatusIcone: LucideIcon = pedido ? (STATUS_ICONE[pedido.status] ?? Package) : Package
-  const podeCofirmar = pedido?.status === 'saiu_entrega' && !confirmado
+  const STATUS_FINAIS = ['entregue', 'retirado', 'cancelado']
+  const podeCofirmar = !!pedido && pedido.tipo === 'entrega' && !STATUS_FINAIS.includes(pedido.status) && !confirmado
 
   return (
     <div className="min-h-screen bg-green-900 flex flex-col items-center justify-start pt-10 px-4 pb-10">
@@ -190,10 +193,10 @@ export default function RastreioPedidoPage({ params }: { params: Promise<{ codig
             </div>
           )}
 
-          {/* Status que não permite ação */}
-          {!podeCofirmar && pedido.status !== 'entregue' && pedido.status !== 'retirado' && pedido.status !== 'cancelado' && (
+          {/* Status que não permite ação — apenas retirada em status ativo */}
+          {!podeCofirmar && pedido.tipo === 'retirada' && !['entregue', 'retirado', 'cancelado'].includes(pedido.status) && (
             <div className="bg-white/10 rounded-xl px-4 py-3 text-center">
-              <p className="text-green-200 text-sm">O pedido ainda não saiu para entrega.</p>
+              <p className="text-green-200 text-sm">Retire seu pedido na loja.</p>
             </div>
           )}
         </div>

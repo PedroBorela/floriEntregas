@@ -7,6 +7,7 @@ import type { PedidoStatus } from '@/lib/types'
 const OPCOES: { value: PedidoStatus; label: string }[] = [
   { value: 'pendente',      label: 'Pendente' },
   { value: 'em_preparo',    label: 'Em preparo' },
+  { value: 'pronto',        label: 'Pronto' },
   { value: 'saiu_entrega',  label: 'Saiu p/ entrega' },
   { value: 'entregue',      label: 'Entregue' },
   { value: 'retirado',      label: 'Retirado' },
@@ -16,7 +17,8 @@ const OPCOES: { value: PedidoStatus; label: string }[] = [
 const COR: Record<PedidoStatus, string> = {
   pendente:     'border-gray-300 text-gray-700',
   em_preparo:   'border-yellow-400 text-yellow-800 bg-yellow-50',
-  saiu_entrega: 'border-blue-400 text-blue-800 bg-blue-50',
+  pronto:       'border-blue-400 text-blue-800 bg-blue-50',
+  saiu_entrega: 'border-orange-400 text-orange-800 bg-orange-50',
   entregue:     'border-green-400 text-green-800 bg-green-50',
   retirado:     'border-green-400 text-green-800 bg-green-50',
   cancelado:    'border-red-300 text-red-700 bg-red-50',
@@ -48,7 +50,7 @@ export default function StatusDropdown({ pedidoId, statusAtual, tipo }: Props) {
 
   const opcoesFiltradas = tipo === 'entrega'
     ? OPCOES.filter(o => o.value !== 'retirado')
-    : OPCOES.filter(o => o.value !== 'entregue')
+    : OPCOES.filter(o => o.value !== 'entregue' && o.value !== 'saiu_entrega')
 
   return (
     <div className="flex items-center gap-3">

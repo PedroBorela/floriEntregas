@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Modal from '@/components/ui/Modal'
+import { useToast } from '@/components/ui/Toast'
 
 interface Props {
   pedidoId: string
@@ -13,6 +14,7 @@ export default function BotaoExcluirPedido({ pedidoId, codigo }: Props) {
   const [aberto, setAberto] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const { toast } = useToast()
 
   async function handleExcluir() {
     setLoading(true)
@@ -22,7 +24,7 @@ export default function BotaoExcluirPedido({ pedidoId, codigo }: Props) {
       router.push('/pedidos')
     } else {
       const err = await res.json()
-      alert('Erro ao excluir: ' + err.error)
+      toast('Erro ao excluir: ' + err.error)
       setAberto(false)
     }
   }

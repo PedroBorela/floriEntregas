@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import type { PedidoStatus, PagamentoTipo } from '@/lib/types'
 
-const JOIN_SELECT = '*, pedido_itens(*), endereco:enderecos(*), destinatario:destinatarios(*), pagamento:pagamentos(*), notificacoes:notificacoes_whatsapp(*)'
+const JOIN_SELECT = '*, pedido_itens(*), endereco:enderecos(*), destinatario:destinatarios(*), pagamento:pagamentos(*), notificacoes:notificacoes_whatsapp(*), vendedor:vendedores(id, nome)'
 
 function aplanarPedido(p: Record<string, any>) {
   const end = p.endereco as Record<string, any> | null
   const dest = p.destinatario as Record<string, any> | null
   const pag = Array.isArray(p.pagamento) ? p.pagamento[0] as Record<string, any> | undefined : null
   const notifs: Record<string, any>[] = Array.isArray(p.notificacoes) ? p.notificacoes : []
-  const { endereco, destinatario, pagamento, notificacoes, ...rest } = p
+  const vend = p.vendedor as { id: string; nome: string } | null
+  const { endereco, destinatario, pagamento, notificacoes, vendedor, ...rest } = p
   return {
     ...rest,
     endereco_apelido: end?.apelido ?? null,
@@ -30,12 +31,14 @@ function aplanarPedido(p: Record<string, any>) {
     valor_pago: pag?.valor_pago ?? 0,
     whatsapp_confirmacao_enviado: notifs.some(n => n.tipo === 'confirmacao' && n.enviado),
     whatsapp_saiu_enviado: notifs.some(n => n.tipo === 'saiu_entrega' && n.enviado),
+    vendedor: vend ?? null,
   }
 }
 
 const PROGRESSAO: Partial<Record<PedidoStatus, PedidoStatus>> = {
-  pendente: 'em_preparo',
-  em_preparo: 'saiu_entrega',
+  pendente:     'em_preparo',
+  em_preparo:   'pronto',
+  pronto:       'saiu_entrega',
   saiu_entrega: 'entregue',
 }
 
@@ -60,7 +63,7 @@ export async function PATCH(
 
     if (!pedido) return NextResponse.json({ error: 'Pedido não encontrado' }, { status: 404 })
 
-    const proximo = pedido.tipo === 'retirada' && pedido.status === 'saiu_entrega'
+    const proximo = pedido.tipo === 'retirada' && pedido.status === 'pronto'
       ? 'retirado'
       : PROGRESSAO[pedido.status as PedidoStatus]
 
@@ -117,6 +120,18 @@ export async function PATCH(
     return NextResponse.json({ ok: true })
   }
 
+  if (acao === 'definir_vendedor') {
+    const { vendedor_id } = body
+    const { data, error } = await supabase
+      .from('pedidos')
+      .update({ vendedor_id: vendedor_id ?? null })
+      .eq('id', id)
+      .select('id, vendedor_id, vendedor:vendedores(id, nome)')
+      .single()
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+    return NextResponse.json({ pedido: data })
+  }
+
   if (acao === 'marcar_impresso') {
     const { data, error } = await supabase
       .from('pedidos')
@@ -131,7 +146,7 @@ export async function PATCH(
 
   if (acao === 'definir_status') {
     const { status } = body
-    const validos: PedidoStatus[] = ['pendente', 'em_preparo', 'saiu_entrega', 'entregue', 'retirado', 'cancelado']
+    const validos: PedidoStatus[] = ['pendente', 'em_preparo', 'pronto', 'saiu_entrega', 'entregue', 'retirado', 'cancelado']
     if (!validos.includes(status)) return NextResponse.json({ error: 'Status inválido' }, { status: 400 })
 
     const { data: atual } = await supabase.from('pedidos').select('status').eq('id', id).single()
@@ -154,7 +169,7 @@ export async function PATCH(
       endereco_apelido, cep, logradouro, numero, bairro, cidade, estado, referencia, latitude, longitude,
       zona_frete_id, data_entrega, horario_entrega, tem_cartao, mensagem_cartao,
       pago, pagamento_tipo, pagamento_parcial, valor_pago,
-      valor_produtos, valor_frete, valor_total, observacoes,
+      valor_produtos, valor_frete, valor_total, observacoes, vendedor_id,
     } = body as {
       itens: { nome_produto: string; valor_unitario: number; quantidade: number; observacao?: string }[]
       cliente_nome: string; cliente_telefone: string
@@ -167,7 +182,7 @@ export async function PATCH(
       tem_cartao: boolean; mensagem_cartao: string | null
       pago: boolean; pagamento_tipo: PagamentoTipo | null; pagamento_parcial: boolean; valor_pago: number
       valor_produtos: number; valor_frete: number; valor_total: number
-      observacoes: string | null
+      observacoes: string | null; vendedor_id: string | null
     }
 
     // busca pedido atual para saber endereco_id e destinatario_id existentes
@@ -224,6 +239,7 @@ export async function PATCH(
         valor_produtos, valor_frete, valor_total,
         observacoes,
         endereco_id, destinatario_id,
+        vendedor_id: vendedor_id ?? null,
       })
       .eq('id', id)
 

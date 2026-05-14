@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, type ReactElement } from 'react'
+import { useState, useEffect } from 'react'
 import { formatarMoeda } from '@/lib/formatters'
 import Link from 'next/link'
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LineChart, Line, Cell, PieChart, Pie,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LineChart, Line,
 } from 'recharts'
 
 interface Analytics {
@@ -21,6 +21,7 @@ interface Analytics {
   por_dia: { dia: string; pedidos: number; receita: number }[]
   pagamentos: { tipo: string; qtd: number }[]
   top_clientes: { id: string; nome: string; pedidos: number; receita: number }[]
+  top_vendedores: { id: string; nome: string; pedidos: number; receita: number }[]
 }
 
 const LABELS_PAG: Record<string, string> = {
@@ -54,39 +55,17 @@ const PAG_COLORS: Record<string, string> = {
   cartao_debito: COLORS.warning,
 }
 
-function KpiCard({
-  label, value, sub, color, icon,
-}: {
+function KpiCard({ label, value, sub, color }: {
   label: string
   value: string
   sub?: string
   color: string
-  icon: ReactElement
 }) {
   return (
-    <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden group">
-      <div
-        className="absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-[0.03] group-hover:opacity-[0.06] transition-opacity"
-        style={{ backgroundColor: color }}
-      />
-      <div className="flex flex-col h-full relative z-10">
-        <div
-          className="w-11 h-11 rounded-2xl flex items-center justify-center mb-4 shadow-sm"
-          style={{ backgroundColor: `${color}10`, color: color }}
-        >
-          {icon}
-        </div>
-        <div className="mt-auto">
-          <p className="text-sm font-medium text-slate-500 mb-1">{label}</p>
-          <p className="text-2xl font-bold text-slate-900 tracking-tight">{value}</p>
-          {sub && (
-            <p className="text-xs text-slate-400 mt-2 font-medium flex items-center gap-1">
-              <span className="w-1 h-1 rounded-full bg-slate-200" />
-              {sub}
-            </p>
-          )}
-        </div>
-      </div>
+    <div className="bg-white rounded-2xl py-5 px-3 shadow-sm border border-slate-100 hover:shadow-md transition-shadow text-center flex flex-col justify-center min-h-[140px] overflow-hidden">
+      <p className="text-xl sm:text-2xl font-black tracking-tight whitespace-nowrap overflow-hidden text-ellipsis" style={{ color }}>{value}</p>
+      <p className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mt-2">{label}</p>
+      {sub && <p className="text-[10px] sm:text-xs text-slate-400 mt-1">{sub}</p>}
     </div>
   )
 }
@@ -134,13 +113,21 @@ export default function AnalyticsPage() {
   const [dias, setDias] = useState(30)
   const [dados, setDados] = useState<Analytics | null>(null)
   const [loading, setLoading] = useState(true)
+  const [erro, setErro] = useState<string | null>(null)
 
   useEffect(() => {
     setLoading(true)
+    setErro(null)
     fetch(`/api/analytics?dias=${dias}`)
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) {
+          const text = await r.text().catch(() => `HTTP ${r.status}`)
+          throw new Error(text.slice(0, 200))
+        }
+        return r.json()
+      })
       .then((d) => { setDados(d); setLoading(false) })
-      .catch(() => setLoading(false))
+      .catch((e: Error) => { setErro(e.message); setLoading(false) })
   }, [dias])
 
   return (
@@ -157,8 +144,8 @@ export default function AnalyticsPage() {
               key={d}
               onClick={() => setDias(d)}
               className={`px-5 py-2 rounded-xl text-sm font-bold transition-all duration-200 ${dias === d
-                  ? 'bg-white shadow-sm text-green-800'
-                  : 'text-slate-500 hover:text-slate-800'
+                ? 'bg-white shadow-sm text-green-800'
+                : 'text-slate-500 hover:text-slate-800'
                 }`}
             >
               {d === 7 ? 'Semana' : d === 30 ? 'Mês' : 'Trimestre'}
@@ -169,7 +156,7 @@ export default function AnalyticsPage() {
 
       {loading ? (
         <LoadingSkeleton />
-      ) : !dados ? (
+      ) : erro || !dados ? (
         <div className="bg-white rounded-3xl p-16 text-center shadow-sm border border-slate-100">
           <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -178,6 +165,7 @@ export default function AnalyticsPage() {
           </div>
           <h2 className="text-lg font-bold text-slate-900">Erro na conexão</h2>
           <p className="text-slate-500 mt-1">Não foi possível carregar os dados estatísticos no momento.</p>
+          {erro && <p className="mt-2 text-xs text-rose-400 font-mono break-all">{erro}</p>}
           <button
             onClick={() => window.location.reload()}
             className="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors"
@@ -192,8 +180,75 @@ export default function AnalyticsPage() {
   )
 }
 
+interface DataProxima {
+  id: string
+  nome: string
+  data: string
+  cliente_id: string
+  clientes: { id: string; nome: string } | null
+  dias: number
+}
+
+function labelDias(dias: number): { texto: string; cor: string } {
+  if (dias === 0) return { texto: 'Hoje!', cor: 'bg-green-100 text-green-800' }
+  if (dias === 1) return { texto: 'Amanhã', cor: 'bg-green-100 text-green-700' }
+  if (dias <= 7) return { texto: `em ${dias} dias`, cor: 'bg-amber-100 text-amber-800' }
+  if (dias <= 30) return { texto: `em ${dias} dias`, cor: 'bg-blue-100 text-blue-700' }
+  return { texto: `em ${dias} dias`, cor: 'bg-gray-100 text-gray-600' }
+}
+
+function formatarDataExibicao(iso: string) {
+  const [, mes, dia] = iso.split('-')
+  return `${dia}/${mes}`
+}
+
+function DatasProximasPanel() {
+  const [datas, setDatas] = useState<DataProxima[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/analytics/datas-proximas')
+      .then((r) => r.json())
+      .then((d) => { setDatas(Array.isArray(d) ? d : []); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [])
+
+  if (loading) return null
+  if (!datas.length) return null
+
+  return (
+    <CardShell title="Datas Especiais Próximas">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+        {datas.slice(0, 10).map((d) => {
+          const { texto, cor } = labelDias(d.dias)
+          return (
+            <Link
+              key={d.id}
+              href={d.clientes ? `/clientes/${d.clientes.id}` : '#'}
+              className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 transition border border-transparent hover:border-slate-100 group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-lg shrink-0">
+                🎂
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-slate-800 truncate group-hover:text-green-800 transition-colors">
+                  {d.clientes?.nome ?? '—'}
+                </p>
+                <p className="text-xs text-slate-500 truncate">{d.nome} · {formatarDataExibicao(d.data)}</p>
+              </div>
+              <span className={`text-xs font-semibold px-2 py-1 rounded-full shrink-0 ${cor}`}>
+                {texto}
+              </span>
+            </Link>
+          )
+        })}
+      </div>
+    </CardShell>
+  )
+}
+
 function DashboardContent({ dados }: { dados: Analytics }) {
-  const { kpis, top_produtos, por_dia, pagamentos, top_clientes } = dados
+  const { kpis, top_produtos, por_dia, pagamentos, top_clientes, top_vendedores } = dados
 
   const totalPag = pagamentos.reduce((s, p) => s + p.qtd, 0)
   const pctEntregas = kpis.total_pedidos > 0
@@ -214,45 +269,24 @@ function DashboardContent({ dados }: { dados: Analytics }) {
           value={String(kpis.total_pedidos)}
           sub={`${kpis.pedidos_hoje} pedidos hoje`}
           color={COLORS.primary}
-          icon={
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-            </svg>
-          }
         />
         <KpiCard
           label="Faturamento Bruto"
           value={formatarMoeda(kpis.receita_total)}
           sub={`Média de ${formatarMoeda(kpis.ticket_medio)} / pedido`}
           color={COLORS.secondary}
-          icon={
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          }
         />
         <KpiCard
           label="Pendente de Recebimento"
           value={formatarMoeda(kpis.a_receber)}
           sub="Pedidos parciais ou em aberto"
           color={kpis.a_receber > 0 ? COLORS.danger : COLORS.primary}
-          icon={
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-            </svg>
-          }
         />
         <KpiCard
           label="Logística de Entrega"
           value={`${pctEntregas}%`}
           sub={`${kpis.entregas} entregas efetuadas`}
           color={COLORS.info}
-          icon={
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-              <path d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1" />
-            </svg>
-          }
         />
       </div>
 
@@ -307,6 +341,7 @@ function DashboardContent({ dados }: { dados: Analytics }) {
                   />
                   <Tooltip
                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', padding: '12px' }}
+                    formatter={(value: number) => [formatarMoeda(value), "Receita"]}
                   />
                   <Line
                     type="monotone"
@@ -323,6 +358,37 @@ function DashboardContent({ dados }: { dados: Analytics }) {
           </div>
         </CardShell>
       </div>
+
+      {/* Sellers Ranking */}
+      <CardShell title="Ranking de Vendedores">
+        <div className="h-[300px] w-full pt-4">
+          {top_vendedores.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart 
+                data={top_vendedores} 
+                layout="vertical" 
+                margin={{ top: 0, right: 30, left: 60, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={COLORS.gray[100]} />
+                <XAxis type="number" hide />
+                <YAxis 
+                  dataKey="nome" 
+                  type="category" 
+                  axisLine={false} 
+                  tickLine={false}
+                  tick={{ fontSize: 10, fill: COLORS.gray[400], fontWeight: 600 }}
+                  width={100}
+                />
+                <Tooltip 
+                  formatter={(value: number) => [formatarMoeda(value), "Faturamento"]}
+                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', padding: '12px' }}
+                />
+                <Bar dataKey="receita" fill={COLORS.secondary} radius={[0, 6, 6, 0]} barSize={24} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : <EmptyState />}
+        </div>
+      </CardShell>
 
       {/* Distribution Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -380,6 +446,9 @@ function DashboardContent({ dados }: { dados: Analytics }) {
           </div>
         </CardShell>
       </div>
+
+      {/* Datas Próximas */}
+      <DatasProximasPanel />
 
       {/* Top Clients Table-like list */}
       <CardShell title="Melhores Clientes">

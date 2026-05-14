@@ -3,24 +3,27 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { Gift } from 'lucide-react'
+import { formatarDataHora } from '@/lib/formatters'
 import type { Cliente } from '@/lib/types'
 
 export default function ClientesPage() {
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [total, setTotal] = useState(0)
   const [busca, setBusca] = useState('')
+  const [ordem, setOrdem] = useState<'nome' | 'recente'>('nome')
   const [loading, setLoading] = useState(false)
 
   const carregar = useCallback(async () => {
     setLoading(true)
     const params = new URLSearchParams()
     if (busca) params.set('busca', busca)
+    params.set('ordem', ordem)
     const res = await fetch(`/api/clientes?${params}`)
     const json = await res.json()
     setClientes(json.clientes ?? [])
     setTotal(json.total ?? 0)
     setLoading(false)
-  }, [busca])
+  }, [busca, ordem])
 
   useEffect(() => { carregar() }, [carregar])
 
@@ -46,13 +49,31 @@ export default function ClientesPage() {
         <span className="text-sm text-gray-400">{total} cadastrado{total !== 1 ? 's' : ''}</span>
       </div>
 
-      <div className="section-card mb-4">
+      <div className="section-card mb-4 space-y-2">
         <input
           className="form-input w-full"
           placeholder="Buscar por nome, telefone ou WhatsApp..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
         />
+        <div className="flex gap-1.5">
+          {([
+            { value: 'nome', label: 'A–Z' },
+            { value: 'recente', label: 'Mais recentes' },
+          ] as const).map((op) => (
+            <button
+              key={op.value}
+              onClick={() => setOrdem(op.value)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                ordem === op.value
+                  ? 'bg-green-900 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {op.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading ? (
@@ -73,6 +94,7 @@ export default function ClientesPage() {
                       {c.whatsapp && c.whatsapp !== c.telefone && (
                         <p className="text-xs text-gray-400">WhatsApp: {c.whatsapp}</p>
                       )}
+                      <p className="text-xs text-gray-300 mt-1">Cadastrado em {formatarDataHora(c.created_at)}</p>
                     </div>
                     <div className="shrink-0 text-right">
                       {c.cliente_datas && c.cliente_datas.length > 0 && (

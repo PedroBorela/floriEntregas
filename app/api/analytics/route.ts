@@ -8,11 +8,15 @@ export async function GET(req: Request) {
   desde.setDate(desde.getDate() - dias)
   const hoje = new Date().toISOString().split('T')[0]
 
-  const { data: pedidos } = await supabase
+  const { data: pedidos, error: pedidosError } = await supabase
     .from('pedidos')
-    .select('id, valor_total, tipo, status, created_at, data_entrega, cliente_id, cliente_nome, pagamentos(pago, parcial, valor_pago, tipo)')
+    .select('id, valor_total, tipo, status, created_at, data_entrega, cliente_id, cliente_nome, vendedor_id')
     .neq('status', 'cancelado')
     .gte('created_at', desde.toISOString())
+
+  if (pedidosError) {
+    return NextResponse.json({ error: pedidosError.message }, { status: 500 })
+  }
 
   if (!pedidos?.length) {
     return NextResponse.json({
@@ -25,12 +29,27 @@ export async function GET(req: Request) {
   }
 
   const pedidoIds = pedidos.map((p) => p.id)
-  const { data: itens } = await supabase
-    .from('pedido_itens')
-    .select('nome_produto, quantidade, subtotal')
-    .in('pedido_id', pedidoIds)
+
+  // Busca itens e pagamentos em paralelo
+  const [{ data: itens }, { data: pagamentosData }] = await Promise.all([
+    supabase
+      .from('pedido_itens')
+      .select('nome_produto, quantidade, subtotal, pedido_id')
+      .in('pedido_id', pedidoIds),
+    supabase
+      .from('pagamentos')
+      .select('pedido_id, tipo, pago, parcial, valor_pago, valor')
+      .in('pedido_id', pedidoIds),
+  ])
 
   const itensList = itens ?? []
+  const pagList = pagamentosData ?? []
+
+  // Mapeia pagamentos por pedido_id para lookup rápido
+  const pagByPedido = new Map<string, { tipo: string; pago: boolean; parcial: boolean; valor_pago: number; valor: number }>()
+  for (const pg of pagList) {
+    pagByPedido.set(pg.pedido_id, pg)
+  }
 
   const total_pedidos = pedidos.length
   const receita_total = pedidos.reduce((s, p) => s + parseFloat(String(p.valor_total ?? 0)), 0)
@@ -40,10 +59,10 @@ export async function GET(req: Request) {
   const pedidos_hoje = pedidos.filter((p) => (p.data_entrega ?? (p.created_at as string).slice(0, 10)) === hoje).length
 
   const a_receber = pedidos.reduce((s, p) => {
-    const pag = Array.isArray(p.pagamentos) ? p.pagamentos[0] : null
-    if (pag?.pago) return s
+    const pg = pagByPedido.get(p.id)
+    if (pg?.pago) return s
     const total = parseFloat(String(p.valor_total ?? 0))
-    const pago = pag?.parcial ? parseFloat(String(pag.valor_pago ?? 0)) : 0
+    const pago = pg?.parcial ? parseFloat(String(pg.valor_pago ?? 0)) : 0
     return s + (total - pago)
   }, 0)
 
@@ -72,8 +91,8 @@ export async function GET(req: Request) {
     .map(([dia, v]) => ({ dia: dia.slice(5).replace('-', '/'), ...v }))
 
   const pagMap = new Map<string, number>()
-  for (const p of pedidos) {
-    const tipo = Array.isArray(p.pagamentos) ? p.pagamentos[0]?.tipo : null
+  for (const pg of pagList) {
+    const tipo = pg.tipo as string | null
     if (tipo) pagMap.set(tipo, (pagMap.get(tipo) ?? 0) + 1)
   }
   const pagamentos = [...pagMap.entries()]
@@ -89,8 +108,23 @@ export async function GET(req: Request) {
     clienteMap.set(p.cliente_id, cur)
   }
   const top_clientes = [...clienteMap.entries()]
-    .sort((a, b) => b[1].pedidos - a[1].pedidos)
+    .sort((a, b) => b[1].receita - a[1].receita)
     .slice(0, 5)
+    .map(([id, v]) => ({ id, ...v }))
+
+  const { data: vList } = await supabase.from('vendedores').select('id, nome')
+  const vNames = new Map(vList?.map(v => [v.id, v.nome]) ?? [])
+
+  const vMap = new Map<string, { nome: string; pedidos: number; receita: number }>()
+  for (const p of pedidos) {
+    const vid = p.vendedor_id ?? 'sem_vendedor'
+    const cur = vMap.get(vid) ?? { nome: vNames.get(vid) ?? 'Sem Vendedor', pedidos: 0, receita: 0 }
+    cur.pedidos++
+    cur.receita += parseFloat(String(p.valor_total ?? 0))
+    vMap.set(vid, cur)
+  }
+  const top_vendedores = [...vMap.entries()]
+    .sort((a, b) => b[1].receita - a[1].receita)
     .map(([id, v]) => ({ id, ...v }))
 
   return NextResponse.json({
@@ -99,5 +133,6 @@ export async function GET(req: Request) {
     por_dia,
     pagamentos,
     top_clientes,
+    top_vendedores,
   })
 }

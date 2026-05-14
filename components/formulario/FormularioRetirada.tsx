@@ -6,7 +6,11 @@ import CampoProdutos, { type ItemPedido } from './CampoProdutos'
 import CampoCliente from './CampoCliente'
 import DatasEspeciaisInput, { type DataEspecialRascunho } from '@/components/clientes/DatasEspeciaisInput'
 import Modal from '@/components/ui/Modal'
+import { useToast } from '@/components/ui/Toast'
+import ModalSeletorVendedor from '@/components/vendedores/ModalSeletorVendedor'
+import { corVendedor } from '@/lib/vendedorCores'
 import { formatarMoeda } from '@/lib/formatters'
+import { User } from 'lucide-react'
 import type { PagamentoTipo } from '@/lib/types'
 
 const hoje = new Date().toISOString().split('T')[0]
@@ -20,6 +24,7 @@ const JANELAS_RETIRADA = [
 
 export default function FormularioRetirada() {
   const router = useRouter()
+  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [codigoPedido, setCodigoPedido] = useState<string | null>(null)
 
@@ -45,6 +50,9 @@ export default function FormularioRetirada() {
   const [pagamentoTipo, setPagamentoTipo] = useState<PagamentoTipo>('pix')
 
   const [observacoes, setObservacoes] = useState('')
+  const [vendedorId, setVendedorId] = useState<string | null>(null)
+  const [vendedorNome, setVendedorNome] = useState<string | null>(null)
+  const [modalVendedor, setModalVendedor] = useState(false)
 
   const telefoneTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -77,7 +85,7 @@ export default function FormularioRetirada() {
     e.preventDefault()
     const itensFilled = itens.filter((i) => i.nome_produto.trim())
     if (itensFilled.length === 0) {
-      alert('Adicione pelo menos um produto.')
+      toast('Adicione pelo menos um produto.', 'warning')
       return
     }
 
@@ -103,6 +111,7 @@ export default function FormularioRetirada() {
         valor_frete: 0,
         valor_total: valorProdutos,
         observacoes: observacoes || null,
+        vendedor_id: vendedorId ?? null,
         itens: itensFilled,
       }),
     })
@@ -122,7 +131,7 @@ export default function FormularioRetirada() {
       setCodigoPedido(json.pedido.codigo)
     } else {
       const err = await res.json()
-      alert('Erro ao salvar pedido: ' + err.error)
+      toast('Erro ao salvar pedido: ' + err.error)
     }
   }
 
@@ -148,6 +157,8 @@ export default function FormularioRetirada() {
     setValorPago('')
     setPagamentoTipo('pix')
     setObservacoes('')
+    setVendedorId(null)
+    setVendedorNome(null)
     setCodigoPedido(null)
   }
 
@@ -172,6 +183,20 @@ export default function FormularioRetirada() {
         <div className="section-card">
           <h2 className="section-title">Produtos</h2>
           <CampoProdutos itens={itens} onChange={setItens} />
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <p className="form-label mb-1.5">Vendedor</p>
+            <button
+              type="button"
+              onClick={() => setModalVendedor(true)}
+              className={`flex items-center gap-2 text-left text-sm w-full rounded-lg border px-3 py-2 transition ${vendedorId ? corVendedor(vendedorId).pill : 'form-input'
+                }`}
+            >
+              <User size={14} className="shrink-0" />
+              <span className={vendedorNome ? 'font-medium' : 'text-gray-400'}>
+                {vendedorNome ?? 'Nenhum vendedor'}
+              </span>
+            </button>
+          </div>
         </div>
 
         <div className="section-card">
@@ -342,6 +367,13 @@ export default function FormularioRetirada() {
           </button>
         </div>
       </form>
+
+      <ModalSeletorVendedor
+        open={modalVendedor}
+        onClose={() => setModalVendedor(false)}
+        onSelect={(v) => { setVendedorId(v?.id ?? null); setVendedorNome(v?.nome ?? null) }}
+        vendedorAtualId={vendedorId}
+      />
 
       <Modal open={!!codigoPedido} onClose={resetForm} title="Pedido finalizado!">
         <div className="text-center">

@@ -18,9 +18,10 @@ interface Props {
   produto: ProdutoCatalogo
   onPrecoChange?: (id: string, preco: number) => void
   onToggleAtivo?: (id: string, ativo: boolean) => void
+  onEditar?: (produto: ProdutoCatalogo) => void
 }
 
-export default function CardProduto({ produto, onPrecoChange, onToggleAtivo }: Props) {
+export default function CardProduto({ produto, onPrecoChange, onToggleAtivo, onEditar }: Props) {
   const [dicaAberta, setDicaAberta] = useState(false)
   const [editandoPreco, setEditandoPreco] = useState(false)
   const [precoTemp, setPrecoTemp] = useState(String(produto.preco_padrao))
@@ -118,6 +119,17 @@ export default function CardProduto({ produto, onPrecoChange, onToggleAtivo }: P
             </button>
           )}
         </div>
+
+        {/* Botão editar */}
+        {onEditar && (
+          <button
+            type="button"
+            onClick={() => onEditar(produto)}
+            className="mt-1 text-xs text-green-700 border border-green-200 rounded-lg px-2.5 py-1 hover:bg-green-50 transition self-start"
+          >
+            Editar
+          </button>
+        )}
 
         {/* Dica de cuidado */}
         {produto.dica_cuidado && (

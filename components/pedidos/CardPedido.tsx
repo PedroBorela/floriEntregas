@@ -1,7 +1,8 @@
 import Link from 'next/link'
-import { Calendar, Printer } from 'lucide-react'
+import { Calendar, Printer, User } from 'lucide-react'
 import StatusBadge from '@/components/ui/StatusBadge'
 import { formatarMoeda, formatarDataHora, formatarData } from '@/lib/formatters'
+import { corVendedor } from '@/lib/vendedorCores'
 import type { Pedido } from '@/lib/types'
 
 const STATUS_ATIVOS = ['pendente', 'em_preparo', 'saiu_entrega']
@@ -60,6 +61,12 @@ export default function CardPedido({ pedido }: { pedido: Pedido }) {
             ? <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-semibold"><Printer size={10} />Impresso</span>
             : <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 font-semibold"><Printer size={10} />Não impresso</span>
           }
+          {pedido.vendedor && (
+            <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full border font-medium ${corVendedor(pedido.vendedor.id).pill}`}>
+              <User size={10} />
+              {pedido.vendedor.nome}
+            </span>
+          )}
           <span className="ml-auto">{formatarDataHora(pedido.created_at)}</span>
         </div>
       </div>

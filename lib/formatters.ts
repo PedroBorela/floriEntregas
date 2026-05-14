@@ -1,3 +1,11 @@
+export function normalizar(str: string): string {
+  return str
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim()
+}
+
 export function formatarMoeda(valor: number): string {
   return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }

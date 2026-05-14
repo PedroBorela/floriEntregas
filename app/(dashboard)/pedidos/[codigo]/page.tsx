@@ -8,6 +8,7 @@ import BotaoCancelar from '@/components/pedidos/BotaoCancelar'
 import BotaoEditar from '@/components/pedidos/BotaoEditar'
 import BotaoWhatsApp from '@/components/pedidos/BotaoWhatsApp'
 import BotaoExcluirPedido from '@/components/pedidos/BotaoExcluirPedido'
+import BotaoVendedor from '@/components/vendedores/BotaoVendedor'
 import { formatarMoeda, formatarData, formatarDataHora } from '@/lib/formatters'
 import Link from 'next/link'
 import type { Pedido, PedidoItem } from '@/lib/types'
@@ -31,7 +32,8 @@ function aplanarPedido(p: Record<string, any>) {
   const dest = p.destinatario as Record<string, any> | null
   const pag = Array.isArray(p.pagamento) ? p.pagamento[0] as Record<string, any> | undefined : null
   const notifs: Record<string, any>[] = Array.isArray(p.notificacoes) ? p.notificacoes : []
-  const { endereco, destinatario, pagamento, notificacoes, ...rest } = p
+  const vend = p.vendedor as { id: string; nome: string } | null
+  const { endereco, destinatario, pagamento, notificacoes, vendedor, ...rest } = p
   return {
     ...rest,
     endereco_apelido: end?.apelido ?? null,
@@ -52,6 +54,7 @@ function aplanarPedido(p: Record<string, any>) {
     valor_pago: pag?.valor_pago ?? 0,
     whatsapp_confirmacao_enviado: notifs.some(n => n.tipo === 'confirmacao' && n.enviado),
     whatsapp_saiu_enviado: notifs.some(n => n.tipo === 'saiu_entrega' && n.enviado),
+    vendedor: vend ?? null,
   }
 }
 
@@ -67,7 +70,7 @@ export default async function DetalhePedidoPage({ params, searchParams }: PagePr
 
   const { data: pedidoRaw, error } = await supabase
     .from('pedidos')
-    .select('*, pedido_itens(*, produtos_catalogo(categoria, imagem_url)), endereco:enderecos(*), destinatario:destinatarios(*), pagamento:pagamentos(*), notificacoes:notificacoes_whatsapp(*)')
+    .select('*, pedido_itens(*, produtos_catalogo(categoria, imagem_url)), endereco:enderecos(*), destinatario:destinatarios(*), pagamento:pagamentos(*), notificacoes:notificacoes_whatsapp(*), vendedor:vendedores(id, nome)')
     .eq('codigo', codigo.toUpperCase())
     .single()
 
@@ -83,6 +86,7 @@ export default async function DetalhePedidoPage({ params, searchParams }: PagePr
         <h1 className="text-xl font-bold text-green-900 font-mono">{p.codigo}</h1>
         <StatusBadge status={p.status} />
         <div className="ml-auto flex items-center gap-2 flex-wrap">
+          <BotaoVendedor pedidoId={p.id} vendedorInicial={p.vendedor ?? null} />
           <BotaoEditar pedido={p as Pedido} />
           <BotaoCancelar pedidoId={p.id} codigo={p.codigo} status={p.status} />
           <BotaoImprimir pedido={{ ...p, pedido_itens: itens as PedidoItem[] }} />

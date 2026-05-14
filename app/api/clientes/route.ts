@@ -7,10 +7,15 @@ export async function GET(req: NextRequest) {
   const page = parseInt(searchParams.get('page') ?? '1')
   const pageSize = 30
 
+  const ordem = searchParams.get('ordem') ?? 'nome'
+  const ordemConfig = ordem === 'recente'
+    ? { column: 'created_at', ascending: false }
+    : { column: 'nome', ascending: true }
+
   let query = supabase
     .from('clientes')
     .select('*, cliente_datas(*)', { count: 'exact' })
-    .order('nome', { ascending: true })
+    .order(ordemConfig.column, { ascending: ordemConfig.ascending })
     .range((page - 1) * pageSize, page * pageSize - 1)
 
   if (busca) {

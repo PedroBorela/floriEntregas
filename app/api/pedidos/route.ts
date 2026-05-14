@@ -81,6 +81,7 @@ export async function POST(req: NextRequest) {
       cliente_id: cliente.id,
       endereco_id,
       destinatario_id,
+      vendedor_id: pedidoData.vendedor_id ?? null,
     })
     .select()
     .single()
@@ -129,7 +130,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from('pedidos')
-    .select('*, pedido_itens(*)', { count: 'exact' })
+    .select('*, pedido_itens(*), vendedor:vendedores(id, nome)', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range((page - 1) * pageSize, page * pageSize - 1)
 
