@@ -341,7 +341,7 @@ function DashboardContent({ dados }: { dados: Analytics }) {
                   />
                   <Tooltip
                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', padding: '12px' }}
-                    formatter={(value: number) => [formatarMoeda(value), "Receita"]}
+                    formatter={(value: any) => [formatarMoeda(Number(value)), "Receita"]}
                   />
                   <Line
                     type="monotone"
@@ -380,7 +380,7 @@ function DashboardContent({ dados }: { dados: Analytics }) {
                   width={100}
                 />
                 <Tooltip 
-                  formatter={(value: number) => [formatarMoeda(value), "Faturamento"]}
+                  formatter={(value: any) => [formatarMoeda(Number(value)), "Faturamento"]}
                   contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', padding: '12px' }}
                 />
                 <Bar dataKey="receita" fill={COLORS.secondary} radius={[0, 6, 6, 0]} barSize={24} />

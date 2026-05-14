@@ -8,6 +8,7 @@ const LOJA = { lat: -20.2578, lng: -42.0339 }
 const COR_STATUS: Record<PedidoStatus, string> = {
   pendente:     '#EF4444',
   em_preparo:   '#EAB308',
+  pronto:       '#A855F7',
   saiu_entrega: '#3B82F6',
   entregue:     '#22C55E',
   retirado:     '#22C55E',
