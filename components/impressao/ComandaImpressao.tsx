@@ -58,8 +58,11 @@ export default function ComandaImpressao({ pedido: p, baseUrl }: Props) {
       <div style={{ margin: '3px 0', fontSize: '11px' }}>
         {p.destinatario_nome ? (
           <>
-            <div><b>De (comprador): </b>{p.cliente_nome}</div>
-            <div><b>Tel comprador: </b>{p.cliente_telefone}</div>
+            <div>
+              <b>De (comprador): </b>
+              {p.presente_anonimo ? <i>Anônimo</i> : p.cliente_nome}
+            </div>
+            {!p.presente_anonimo && <div><b>Tel comprador: </b>{p.cliente_telefone}</div>}
           </>
         ) : (
           <>

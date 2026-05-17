@@ -71,6 +71,7 @@ export async function POST(req: NextRequest) {
       zona_frete_id: pedidoData.zona_frete_id ?? null,
       data_entrega: pedidoData.data_entrega ?? null,
       horario_entrega: pedidoData.horario_entrega ?? null,
+      presente_anonimo: pedidoData.presente_anonimo ?? false,
       tem_cartao: pedidoData.tem_cartao ?? false,
       mensagem_cartao: pedidoData.mensagem_cartao ?? null,
       valor_produtos: pedidoData.valor_produtos,

@@ -243,7 +243,19 @@ export default function FormularioRetirada() {
         </div>
 
         <div className="section-card">
-          <h2 className="section-title">Quem vai retirar</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="section-title !mb-0">Quem vai retirar</h2>
+            {clienteNome && (
+              <button
+                type="button"
+                onClick={() => { setNomeRetirada(clienteNome); setTelefoneRetirada(clienteTelefone) }}
+                className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border border-green-700 text-green-800 hover:bg-green-50 transition font-medium"
+              >
+                <User size={11} />
+                Mesmo cliente
+              </button>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2 sm:col-span-1">
               <label className="form-label">Nome</label>

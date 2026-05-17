@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "../../.."
+		},
+		{
+			"path": "../../../../../../../../../projetos_dev/flori/projeto_catalogo/floriculturaCatalogoAntiGravity"
+		},
+		{
+			"path": "../../../../../../../Downloads/floriculturaCatalogoAntiGravity"
+		}
+	],
+	"settings": {
+		"liveServer.settings.port": 5501,
+		"liveServer.settings.multiRootWorkspaceName": "floriEntregas"
+	}
+}

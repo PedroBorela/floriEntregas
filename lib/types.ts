@@ -105,6 +105,8 @@ export interface Pedido {
   zona_frete_id: string | null
   valor_frete: number
 
+  presente_anonimo: boolean
+
   tem_cartao: boolean
   mensagem_cartao: string | null
 

@@ -1,0 +1,2 @@
+ALTER TABLE pedidos
+  ADD COLUMN IF NOT EXISTS presente_anonimo BOOLEAN NOT NULL DEFAULT false;
