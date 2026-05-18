@@ -5,17 +5,21 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const { itens, ...pedidoData } = body
 
-  // 1. upsert cliente
-  const { data: cliente, error: clienteError } = await supabase
-    .from('clientes')
-    .upsert(
-      { nome: pedidoData.cliente_nome, telefone: pedidoData.cliente_telefone },
-      { onConflict: 'telefone' }
-    )
-    .select('id')
-    .single()
+  // 1. upsert cliente (pulado para vendas de balcão sem telefone)
+  let clienteId: string | null = null
+  if (pedidoData.cliente_telefone) {
+    const { data: cliente, error: clienteError } = await supabase
+      .from('clientes')
+      .upsert(
+        { nome: pedidoData.cliente_nome, telefone: pedidoData.cliente_telefone },
+        { onConflict: 'telefone' }
+      )
+      .select('id')
+      .single()
 
-  if (clienteError) return NextResponse.json({ error: clienteError.message }, { status: 400 })
+    if (clienteError) return NextResponse.json({ error: clienteError.message }, { status: 400 })
+    clienteId = cliente.id
+  }
 
   // 2. usar endereco existente ou criar novo
   let endereco_id: string | null = pedidoData.endereco_id ?? null
@@ -29,7 +33,7 @@ export async function POST(req: NextRequest) {
     const { data: endereco } = await supabase
       .from('enderecos')
       .insert({
-        cliente_id: cliente.id,
+        cliente_id: clienteId,
         apelido: pedidoData.endereco_apelido ?? null,
         cep: pedidoData.cep ?? null,
         logradouro: pedidoData.logradouro,
@@ -52,7 +56,7 @@ export async function POST(req: NextRequest) {
     const { data: dest } = await supabase
       .from('destinatarios')
       .insert({
-        cliente_id: cliente.id,
+        cliente_id: clienteId,
         nome: pedidoData.destinatario_nome,
         telefone: pedidoData.destinatario_telefone ?? null,
       })
@@ -66,8 +70,9 @@ export async function POST(req: NextRequest) {
     .from('pedidos')
     .insert({
       tipo: pedidoData.tipo,
-      cliente_nome: pedidoData.cliente_nome,
-      cliente_telefone: pedidoData.cliente_telefone,
+      ...(pedidoData.status && { status: pedidoData.status }),
+      cliente_nome: pedidoData.cliente_nome || 'Avulso',
+      cliente_telefone: pedidoData.cliente_telefone || '',
       zona_frete_id: pedidoData.zona_frete_id ?? null,
       data_entrega: pedidoData.data_entrega ?? null,
       horario_entrega: pedidoData.horario_entrega ?? null,
@@ -79,7 +84,7 @@ export async function POST(req: NextRequest) {
       valor_total: pedidoData.valor_total,
       observacoes: pedidoData.observacoes ?? null,
       codigo: '',
-      cliente_id: cliente.id,
+      cliente_id: clienteId,
       endereco_id,
       destinatario_id,
       vendedor_id: pedidoData.vendedor_id ?? null,
@@ -142,6 +147,8 @@ export async function GET(req: NextRequest) {
   if (dataInicio) query = query.gte('data_entrega', dataInicio)
   if (dataFim) query = query.lte('data_entrega', dataFim)
   if (tipo) query = query.eq('tipo', tipo)
+  const excluirTipo = searchParams.get('excluirTipo')
+  if (excluirTipo) query = query.neq('tipo', excluirTipo)
 
   const { data: pedidos, error, count } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })

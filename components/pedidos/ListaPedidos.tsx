@@ -14,7 +14,7 @@ const statusOpcoes: { value: PedidoStatus | ''; label: string }[] = [
   { value: 'cancelado', label: 'Cancelado' },
 ]
 
-const STATUS_FINALIZADO = new Set<PedidoStatus>(['entregue', 'retirado', 'cancelado'])
+const STATUS_FINALIZADO = new Set<PedidoStatus>(['entregue', 'retirado', 'vendido', 'cancelado'])
 
 function formatLocal(d: Date) {
   const y = d.getFullYear()
@@ -45,7 +45,21 @@ function labelData(iso: string, hoje: string, ontem: string): string {
 
 const pageSize = 20
 
-export default function ListaPedidos({ dataInicioPadrao = '', dataFimPadrao = '' }: { dataInicioPadrao?: string; dataFimPadrao?: string }) {
+interface ListaPedidosProps {
+  dataInicioPadrao?: string
+  dataFimPadrao?: string
+  tipoBloqueado?: string
+  excluirBalcao?: boolean
+  semSeparacaoFinalizado?: boolean
+}
+
+export default function ListaPedidos({
+  dataInicioPadrao = '',
+  dataFimPadrao = '',
+  tipoBloqueado,
+  excluirBalcao = false,
+  semSeparacaoFinalizado = false,
+}: ListaPedidosProps) {
   const [pedidos, setPedidos] = useState<Pedido[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -56,7 +70,7 @@ export default function ListaPedidos({ dataInicioPadrao = '', dataFimPadrao = ''
   const [filtroStatus, setFiltroStatus] = useState<PedidoStatus | ''>('')
   const [dataInicio, setDataInicio] = useState(dataInicioPadrao)
   const [dataFim, setDataFim] = useState(dataFimPadrao)
-  const [filtroTipo, setFiltroTipo] = useState('')
+  const [filtroTipo, setFiltroTipo] = useState(tipoBloqueado ?? '')
 
   const carregar = useCallback(async (p = 1) => {
     setLoading(true)
@@ -66,6 +80,7 @@ export default function ListaPedidos({ dataInicioPadrao = '', dataFimPadrao = ''
     if (dataInicio) params.set('dataInicio', dataInicio)
     if (dataFim) params.set('dataFim', dataFim)
     if (filtroTipo) params.set('tipo', filtroTipo)
+    if (excluirBalcao) params.set('excluirTipo', 'balcao')
 
     const res = await fetch(`/api/pedidos?${params}`)
     const json = await res.json()
@@ -97,6 +112,7 @@ export default function ListaPedidos({ dataInicioPadrao = '', dataFimPadrao = ''
   const ontem = formatLocal(ontemDate)
 
   const { ativos, finalizados } = useMemo(() => {
+    if (semSeparacaoFinalizado) return { ativos: pedidos, finalizados: [] }
     const ativos: Pedido[] = []
     const finalizados: Pedido[] = []
     for (const p of pedidos) {
@@ -104,9 +120,9 @@ export default function ListaPedidos({ dataInicioPadrao = '', dataFimPadrao = ''
       else ativos.push(p)
     }
     return { ativos, finalizados }
-  }, [pedidos])
+  }, [pedidos, semSeparacaoFinalizado])
 
-  // Group active orders by data_entrega (fallback: created_at date), today first
+  // Group orders by data_entrega (fallback: created_at date), today first
   const gruposPorData = useMemo(() => {
     const map = new Map<string, Pedido[]>()
     for (const p of ativos) {
@@ -198,17 +214,19 @@ export default function ListaPedidos({ dataInicioPadrao = '', dataFimPadrao = ''
                 onChange={(e) => setDataFim(e.target.value)}
               />
             </div>
-            <div className="w-full md:w-48">
-              <select
-                className="form-input"
-                value={filtroTipo}
-                onChange={(e) => setFiltroTipo(e.target.value)}
-              >
-                <option value="">Todos os tipos</option>
-                <option value="entrega">Entrega</option>
-                <option value="retirada">Retirada</option>
-              </select>
-            </div>
+            {!tipoBloqueado && (
+              <div className="w-full md:w-48">
+                <select
+                  className="form-input"
+                  value={filtroTipo}
+                  onChange={(e) => setFiltroTipo(e.target.value)}
+                >
+                  <option value="">Todos os tipos</option>
+                  <option value="entrega">Entrega</option>
+                  <option value="retirada">Retirada</option>
+                </select>
+              </div>
+            )}
           </div>
         </div>
 

@@ -7,6 +7,7 @@ const config: Record<PedidoStatus, { label: string; className: string }> = {
   saiu_entrega:  { label: 'Saiu p/ entrega',  className: 'bg-orange-100 text-orange-800' },
   entregue:      { label: 'Entregue',          className: 'bg-green-100 text-green-800' },
   retirado:      { label: 'Retirado',          className: 'bg-green-100 text-green-800' },
+  vendido:       { label: 'Vendido',           className: 'bg-purple-100 text-purple-800' },
   cancelado:     { label: 'Cancelado',         className: 'bg-red-100 text-red-700' },
 }
 

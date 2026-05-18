@@ -9,7 +9,7 @@ import type { Pedido } from '@/lib/types'
 
 const MapaEntregas = lazy(() => import('@/components/mapa/MapaEntregas'))
 
-type Tab = 'lista' | 'amanha' | 'mapa'
+type Tab = 'lista' | 'amanha' | 'mapa' | 'balcao'
 
 function formatLocal(d: Date) {
   const y = d.getFullYear()
@@ -93,6 +93,7 @@ export default function PaginaPedidos() {
           { value: 'lista', label: 'Lista' },
           { value: 'amanha', label: 'Amanhã' },
           { value: 'mapa', label: `Mapa do Dia${pedidos.length ? ` (${pedidos.length})` : ''}` },
+          { value: 'balcao', label: 'Balcão' },
         ] as { value: Tab; label: string }[]).map((t) => (
           <button
             key={t.value}
@@ -106,9 +107,11 @@ export default function PaginaPedidos() {
         ))}
       </div>
 
-      {tab === 'lista' && <ListaPedidos />}
+      {tab === 'lista' && <ListaPedidos excluirBalcao />}
 
-      {tab === 'amanha' && <ListaPedidos key="amanha" dataInicioPadrao={amanha} dataFimPadrao={amanha} />}
+      {tab === 'amanha' && <ListaPedidos key="amanha" dataInicioPadrao={amanha} dataFimPadrao={amanha} excluirBalcao />}
+
+      {tab === 'balcao' && <ListaPedidos key="balcao" tipoBloqueado="balcao" semSeparacaoFinalizado />}
 
       {tab === 'mapa' && (
         <div className="space-y-4">

@@ -31,9 +31,10 @@ export type PedidoStatus =
   | 'saiu_entrega'
   | 'entregue'
   | 'retirado'
+  | 'vendido'
   | 'cancelado'
 
-export type PedidoTipo = 'entrega' | 'retirada'
+export type PedidoTipo = 'entrega' | 'retirada' | 'balcao'
 
 export type PagamentoTipo = 'pix' | 'dinheiro' | 'cartao_credito' | 'cartao_debito'
 

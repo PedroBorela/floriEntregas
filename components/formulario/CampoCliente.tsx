@@ -14,9 +14,10 @@ interface Props {
   onNomeChange: (v: string) => void
   onTelefoneChange: (v: string) => void
   onClienteSelect?: (id: string | null) => void
+  obrigatorio?: boolean
 }
 
-export default function CampoCliente({ nome, telefone, onNomeChange, onTelefoneChange, onClienteSelect }: Props) {
+export default function CampoCliente({ nome, telefone, onNomeChange, onTelefoneChange, onClienteSelect, obrigatorio = true }: Props) {
   const [sugestoes, setSugestoes] = useState<ClienteSugestao[]>([])
   const [aberto, setAberto] = useState(false)
   const [buscando, setBuscando] = useState(false)
@@ -71,7 +72,7 @@ export default function CampoCliente({ nome, telefone, onNomeChange, onTelefoneC
           placeholder="Nome ou telefone para buscar..."
           value={nome}
           autoComplete="off"
-          required
+          required={obrigatorio}
           onChange={(e) => {
             onNomeChange(e.target.value)
             onClienteSelect?.(null)
@@ -104,7 +105,7 @@ export default function CampoCliente({ nome, telefone, onNomeChange, onTelefoneC
           placeholder="(35) 99999-9999"
           value={telefone}
           onChange={(e) => onTelefoneChange(e.target.value)}
-          required
+          required={obrigatorio}
         />
       </div>
     </div>
