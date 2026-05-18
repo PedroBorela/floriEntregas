@@ -12,6 +12,7 @@ const COR_STATUS: Record<PedidoStatus, string> = {
   saiu_entrega: '#3B82F6',
   entregue:     '#22C55E',
   retirado:     '#22C55E',
+  vendido:      '#22C55E',
   cancelado:    '#9CA3AF',
 }
 
