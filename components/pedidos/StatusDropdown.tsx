@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import type { PedidoStatus } from '@/lib/types'
+import type { PedidoStatus, PedidoTipo } from '@/lib/types'
 
 const OPCOES: { value: PedidoStatus; label: string }[] = [
   { value: 'pendente',      label: 'Pendente' },
@@ -11,6 +11,7 @@ const OPCOES: { value: PedidoStatus; label: string }[] = [
   { value: 'saiu_entrega',  label: 'Saiu p/ entrega' },
   { value: 'entregue',      label: 'Entregue' },
   { value: 'retirado',      label: 'Retirado' },
+  { value: 'vendido',       label: 'Vendido' },
   { value: 'cancelado',     label: 'Cancelado' },
 ]
 
@@ -21,13 +22,14 @@ const COR: Record<PedidoStatus, string> = {
   saiu_entrega: 'border-orange-400 text-orange-800 bg-orange-50',
   entregue:     'border-green-400 text-green-800 bg-green-50',
   retirado:     'border-green-400 text-green-800 bg-green-50',
+  vendido:      'border-green-400 text-green-800 bg-green-50',
   cancelado:    'border-red-300 text-red-700 bg-red-50',
 }
 
 interface Props {
   pedidoId: string
   statusAtual: PedidoStatus
-  tipo: 'entrega' | 'retirada'
+  tipo: PedidoTipo
 }
 
 export default function StatusDropdown({ pedidoId, statusAtual, tipo }: Props) {
@@ -49,8 +51,10 @@ export default function StatusDropdown({ pedidoId, statusAtual, tipo }: Props) {
   }
 
   const opcoesFiltradas = tipo === 'entrega'
-    ? OPCOES.filter(o => o.value !== 'retirado')
-    : OPCOES.filter(o => o.value !== 'entregue' && o.value !== 'saiu_entrega')
+    ? OPCOES.filter(o => o.value !== 'retirado' && o.value !== 'vendido')
+    : tipo === 'retirada'
+      ? OPCOES.filter(o => o.value !== 'entregue' && o.value !== 'saiu_entrega' && o.value !== 'vendido')
+      : OPCOES.filter(o => o.value !== 'entregue' && o.value !== 'saiu_entrega' && o.value !== 'retirado')
 
   return (
     <div className="flex items-center gap-3">
