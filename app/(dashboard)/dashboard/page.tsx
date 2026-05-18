@@ -7,6 +7,7 @@ import BadgeAtrasados from '@/components/dashboard/BadgeAtrasados'
 import PulsoOperacional from '@/components/dashboard/PulsoOperacional'
 import PedidosHoje from '@/components/dashboard/PedidosHoje'
 import SinaisDeGestao from '@/components/dashboard/SinaisDeGestao'
+import BadgeDevedores from '@/components/dashboard/BadgeDevedores'
 import type { StatusContagens } from '@/components/dashboard/PulsoOperacional'
 import type { PedidoHoje } from '@/components/dashboard/PedidosHoje'
 import type { KpisData } from '@/components/dashboard/SinaisDeGestao'
@@ -17,6 +18,11 @@ type PulsoData = {
   contagens: StatusContagens
   total: number
   atrasados: number
+}
+
+type DevedoresData = {
+  devedores: { id: string }[]
+  total_devido: number
 }
 
 function Skeleton() {
@@ -58,6 +64,7 @@ export default function DashboardPage() {
   const [pulso, setPulso] = useState<PulsoData | null>(null)
   const [pedidosHoje, setPedidosHoje] = useState<PedidoHoje[] | null>(null)
   const [kpis, setKpis] = useState<KpisData | null>(null)
+  const [devedores, setDevedores] = useState<DevedoresData | null>(null)
   const [loading, setLoading] = useState(true)
   const [atualizando, setAtualizando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
@@ -85,11 +92,16 @@ export default function DashboardPage() {
         if (!r.ok) throw new Error(await r.text().catch(() => `HTTP ${r.status}`))
         return r.json() as Promise<KpisData>
       }),
+      fetch('/api/dashboard/devedores').then(async (r) => {
+        if (!r.ok) throw new Error(await r.text().catch(() => `HTTP ${r.status}`))
+        return r.json() as Promise<DevedoresData>
+      }),
     ])
-      .then(([p, ph, k]) => {
+      .then(([p, ph, k, d]) => {
         setPulso(p)
         setPedidosHoje(ph)
         setKpis(k)
+        setDevedores(d)
         setAtualizadoEm(new Date())
         setLoading(false)
         setAtualizando(false)
@@ -155,6 +167,9 @@ export default function DashboardPage() {
       ) : (
         <>
           {pulso.atrasados > 0 && <BadgeAtrasados count={pulso.atrasados} />}
+          {devedores && devedores.devedores.length > 0 && (
+            <BadgeDevedores count={devedores.devedores.length} totalDevido={devedores.total_devido} />
+          )}
           <PulsoOperacional contagens={pulso.contagens} total={pulso.total} />
           <PedidosHoje pedidos={pedidosHoje} />
           <SinaisDeGestao kpis={kpis} />
