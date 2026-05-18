@@ -12,12 +12,14 @@ const LOJA = { lat: -20.2578, lng: -42.0339 }
 const PROXIMO_STATUS: Partial<Record<PedidoStatus, string>> = {
   pendente:     'Em preparo',
   em_preparo:   'Saiu p/ entrega',
+  pronto:       'Saiu p/ entrega',
   saiu_entrega: 'Entregue',
 }
 
 const COR_AVANCAR: Partial<Record<PedidoStatus, string>> = {
   pendente:     'bg-yellow-100 text-yellow-800 hover:bg-yellow-200',
   em_preparo:   'bg-blue-100 text-blue-800 hover:bg-blue-200',
+  pronto:       'bg-purple-100 text-purple-800 hover:bg-purple-200',
   saiu_entrega: 'bg-green-100 text-green-800 hover:bg-green-200',
 }
 
@@ -127,9 +129,11 @@ export default function PainelStatus({ pedidos, onAvancar }: Props) {
             const distKm = p.latitude != null
               ? haversine(LOJA.lat, LOJA.lng, p.latitude, p.longitude!)
               : null
-            const proximo = p.tipo === 'retirada' && p.status === 'saiu_entrega'
-              ? 'Retirado'
-              : PROXIMO_STATUS[p.status]
+            const proximo = p.tipo === 'balcao' && p.status === 'pronto'
+              ? 'Vendido'
+              : p.tipo === 'retirada' && p.status === 'saiu_entrega'
+                ? 'Retirado'
+                : PROXIMO_STATUS[p.status]
             const corBtn = COR_AVANCAR[p.status]
             const isAvancando = avancando === p.id
 

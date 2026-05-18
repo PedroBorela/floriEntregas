@@ -8,6 +8,7 @@ import type { Pedido, PedidoStatus } from '@/lib/types'
 const PROXIMO: Partial<Record<PedidoStatus, string>> = {
   pendente:     'Em preparo',
   em_preparo:   'Saiu p/ entrega',
+  pronto:       'Saiu p/ entrega',
   saiu_entrega: 'Entregue',
 }
 
@@ -25,9 +26,11 @@ export default function ModalStatus({ pedido, onClose, onAvancar, onCancelar }: 
 
   if (!pedido) return null
 
-  const labelProximo = pedido.tipo === 'retirada' && pedido.status === 'saiu_entrega'
-    ? 'Retirado'
-    : PROXIMO[pedido.status]
+  const labelProximo = pedido.tipo === 'balcao' && pedido.status === 'pronto'
+    ? 'Vendido'
+    : pedido.tipo === 'retirada' && pedido.status === 'saiu_entrega'
+      ? 'Retirado'
+      : PROXIMO[pedido.status]
 
   const podeCancelar = CANCELAVEL.includes(pedido.status)
 

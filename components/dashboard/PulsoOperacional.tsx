@@ -4,6 +4,7 @@ export type StatusContagens = {
   saiu_entrega: number
   entregue: number
   retirado: number
+  vendido: number
   cancelado: number
 }
 
@@ -13,11 +14,12 @@ const CONFIG: Record<keyof StatusContagens, { label: string; sub: string; bg: st
   saiu_entrega: { label: 'Saiu p/ Entrega', sub: 'a caminho do cliente',   bg: 'bg-amber-50',  num: 'text-amber-800' },
   entregue:     { label: 'Entregues',       sub: 'concluídos hoje',        bg: 'bg-green-50',  num: 'text-green-800' },
   retirado:     { label: 'Retirados',       sub: 'retirados na loja hoje', bg: 'bg-green-50',  num: 'text-green-800' },
+  vendido:      { label: 'Vendidos',        sub: 'vendas no balcão hoje',  bg: 'bg-green-50',  num: 'text-green-800' },
   cancelado:    { label: 'Cancelados',      sub: 'cancelados hoje',        bg: 'bg-red-50',    num: 'text-red-700'  },
 }
 
 const ORDEM: (keyof StatusContagens)[] = [
-  'pendente', 'em_preparo', 'saiu_entrega', 'entregue', 'retirado', 'cancelado',
+  'pendente', 'em_preparo', 'saiu_entrega', 'entregue', 'retirado', 'vendido', 'cancelado',
 ]
 
 export default function PulsoOperacional({

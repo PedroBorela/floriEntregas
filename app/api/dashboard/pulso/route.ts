@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
 const STATUSES_ABERTOS = ['pendente', 'em_preparo', 'saiu_entrega']
-const STATUSES_TERMINAIS = ['entregue', 'retirado', 'cancelado']
+const STATUSES_TERMINAIS = ['entregue', 'retirado', 'vendido', 'cancelado']
 
 export async function GET() {
   const agora = new Date()
@@ -48,6 +48,7 @@ export async function GET() {
     saiu_entrega: 0,
     entregue: 0,
     retirado: 0,
+    vendido: 0,
     cancelado: 0,
   }
 

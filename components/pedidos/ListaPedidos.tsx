@@ -9,8 +9,10 @@ const statusOpcoes: { value: PedidoStatus | ''; label: string }[] = [
   { value: 'pendente', label: 'Pendente' },
   { value: 'em_preparo', label: 'Em preparo' },
   { value: 'saiu_entrega', label: 'Saiu p/ entrega' },
+  { value: 'pronto', label: 'Pronto' },
   { value: 'entregue', label: 'Entregue' },
   { value: 'retirado', label: 'Retirado' },
+  { value: 'vendido', label: 'Vendido' },
   { value: 'cancelado', label: 'Cancelado' },
 ]
 
@@ -224,6 +226,7 @@ export default function ListaPedidos({
                   <option value="">Todos os tipos</option>
                   <option value="entrega">Entrega</option>
                   <option value="retirada">Retirada</option>
+                  <option value="balcao">Balcão</option>
                 </select>
               </div>
             )}

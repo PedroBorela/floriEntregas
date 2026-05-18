@@ -9,7 +9,7 @@ const POR_PAGINA = 3
 type PedidoAtrasado = {
   id: string
   codigo: string
-  tipo: 'entrega' | 'retirada'
+  tipo: 'entrega' | 'retirada' | 'balcao'
   status: string
   cliente_nome: string
   data_entrega: string
@@ -132,10 +132,10 @@ export default function BadgeAtrasados({ count }: { count: number }) {
                     </span>
                     <span
                       className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        p.tipo === 'entrega' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'
+                        p.tipo === 'entrega' ? 'bg-blue-50 text-blue-600' : p.tipo === 'balcao' ? 'bg-orange-50 text-orange-600' : 'bg-purple-50 text-purple-600'
                       }`}
                     >
-                      {p.tipo === 'entrega' ? 'Entrega' : 'Retirada'}
+                      {p.tipo === 'entrega' ? 'Entrega' : p.tipo === 'balcao' ? 'Balcão' : 'Retirada'}
                     </span>
                   </div>
                 </Link>

@@ -65,7 +65,9 @@ export async function PATCH(
 
     const proximo = pedido.tipo === 'retirada' && pedido.status === 'pronto'
       ? 'retirado'
-      : PROGRESSAO[pedido.status as PedidoStatus]
+      : pedido.tipo === 'balcao' && pedido.status === 'pronto'
+        ? 'vendido'
+        : PROGRESSAO[pedido.status as PedidoStatus]
 
     if (!proximo) return NextResponse.json({ error: 'Status já é final' }, { status: 400 })
 
@@ -146,7 +148,7 @@ export async function PATCH(
 
   if (acao === 'definir_status') {
     const { status } = body
-    const validos: PedidoStatus[] = ['pendente', 'em_preparo', 'pronto', 'saiu_entrega', 'entregue', 'retirado', 'cancelado']
+    const validos: PedidoStatus[] = ['pendente', 'em_preparo', 'pronto', 'saiu_entrega', 'entregue', 'retirado', 'vendido', 'cancelado']
     if (!validos.includes(status)) return NextResponse.json({ error: 'Status inválido' }, { status: 400 })
 
     const { data: atual } = await supabase.from('pedidos').select('status').eq('id', id).single()
