@@ -8,9 +8,8 @@ import NotasCliente from '@/components/clientes/NotasCliente'
 import Modal from '@/components/ui/Modal'
 import { useToast } from '@/components/ui/Toast'
 import { formatarMoeda, formatarData } from '@/lib/formatters'
-import type { ClienteNota } from '@/lib/types'
+import type { ClienteNota, Cliente, ClienteData } from '@/lib/types'
 import { useCep } from '@/hooks/useCep'
-import type { Cliente, ClienteData } from '@/lib/types'
 
 function mascaraCep(valor: string) {
   const d = valor.replace(/\D/g, '').slice(0, 8)

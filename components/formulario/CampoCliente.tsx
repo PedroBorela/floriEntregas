@@ -17,7 +17,7 @@ interface Props {
   obrigatorio?: boolean
 }
 
-export default function CampoCliente({ nome, telefone, onNomeChange, onTelefoneChange, onClienteSelect, obrigatorio = true }: Props) {
+export default function CampoCliente({ nome, telefone, onNomeChange, onTelefoneChange, onClienteSelect, obrigatorio = true }: Readonly<Props>) {
   const [sugestoes, setSugestoes] = useState<ClienteSugestao[]>([])
   const [aberto, setAberto] = useState(false)
   const [buscando, setBuscando] = useState(false)

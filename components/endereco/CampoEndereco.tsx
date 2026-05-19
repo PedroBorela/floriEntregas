@@ -156,7 +156,7 @@ export default function CampoEndereco({ value, onChange, enderecosExistentes }: 
     const cidadeGeo = s.address?.city || s.address?.town || s.address?.village || s.address?.municipality || value.cidade
     setTermoBusca(rua)
     setGeocAberto(false)
-    onChange({ ...value, endereco_id: null, logradouro: rua, bairro: bairroGeo, cidade: cidadeGeo, latitude: parseFloat(s.lat), longitude: parseFloat(s.lon) })
+    onChange({ ...value, endereco_id: null, logradouro: rua, bairro: bairroGeo, cidade: cidadeGeo, latitude: Number.Number.parseFloat(s.lat), longitude: Number.Number.parseFloat(s.lon) })
   }
 
   function set(field: keyof EnderecoData, val: string | number | null) {
@@ -320,7 +320,7 @@ export default function CampoEndereco({ value, onChange, enderecosExistentes }: 
                   min="0"
                   step="0.50"
                   value={value.valor_frete || ''}
-                  onChange={(e) => set('valor_frete', parseFloat(e.target.value) || 0)}
+                  onChange={(e) => set('valor_frete', Number.parseFloat(e.target.value) || 0)}
                 />
               </div>
             </div>
@@ -336,7 +336,7 @@ export default function CampoEndereco({ value, onChange, enderecosExistentes }: 
                   step="0.50"
                   placeholder="0,00"
                   value={value.valor_frete || ''}
-                  onChange={(e) => set('valor_frete', parseFloat(e.target.value) || 0)}
+                  onChange={(e) => set('valor_frete', Number.parseFloat(e.target.value) || 0)}
                 />
               </div>
             </div>

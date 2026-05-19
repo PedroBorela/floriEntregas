@@ -14,7 +14,7 @@ interface Props {
   baseUrl: string
 }
 
-export default function ComandaImpressao({ pedido: p, baseUrl }: Props) {
+export default function ComandaImpressao({ pedido: p, baseUrl }: Readonly<Props>) {
   const itens = p.pedido_itens ?? []
 
   return (
@@ -165,22 +165,20 @@ export default function ComandaImpressao({ pedido: p, baseUrl }: Props) {
       </div>
 
       {/* Cartão */}
-      <>
-        <div style={{ borderTop: '1px dashed #000', margin: '4px 0' }} />
-        {p.tem_cartao ? (
-          <div style={{ fontSize: '11px', margin: '3px 0', border: '1px solid #000', padding: '4px' }}>
-            <div style={{ fontWeight: 'bold', marginBottom: '2px' }}>Mensagem do cartão:</div>
-            {p.mensagem_cartao
-              ? <div style={{ fontStyle: 'italic' }}>{p.mensagem_cartao}</div>
-              : <div style={{ fontStyle: 'italic', color: '#666' }}>Sem mensagem definida</div>
-            }
-          </div>
-        ) : (
-          <div style={{ fontSize: '11px', margin: '3px 0' }}>
-            <b>Cartão: </b>Sem cartão
-          </div>
-        )}
-      </>
+      <div style={{ borderTop: '1px dashed #000', margin: '4px 0' }} />
+      {p.tem_cartao ? (
+        <div style={{ fontSize: '11px', margin: '3px 0', border: '1px solid #000', padding: '4px' }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '2px' }}>Mensagem do cartão:</div>
+          {p.mensagem_cartao
+            ? <div style={{ fontStyle: 'italic' }}>{p.mensagem_cartao}</div>
+            : <div style={{ fontStyle: 'italic', color: '#666' }}>Sem mensagem definida</div>
+          }
+        </div>
+      ) : (
+        <div style={{ fontSize: '11px', margin: '3px 0' }}>
+          <b>Cartão: </b>Sem cartão
+        </div>
+      )}
 
       {/* Observações */}
       {p.observacoes && (

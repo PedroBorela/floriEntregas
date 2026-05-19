@@ -133,10 +133,10 @@ export default function CatalogoPage() {
       imagem_url = publicUrl
     }
 
-    const novoPreco = parseFloat(editPreco)
+    const novoPreco = Number.parseFloat(editPreco)
     const update: Partial<ProdutoCatalogo> = {
       nome: editNome.trim() || editando.nome,
-      preco_padrao: !isNaN(novoPreco) && novoPreco > 0 ? novoPreco : editando.preco_padrao,
+      preco_padrao: !Number.isNaN(novoPreco) && novoPreco > 0 ? novoPreco : editando.preco_padrao,
       imagem_url,
     }
 

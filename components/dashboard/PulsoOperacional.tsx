@@ -25,10 +25,10 @@ const ORDEM: (keyof StatusContagens)[] = [
 export default function PulsoOperacional({
   contagens,
   total,
-}: {
+}: Readonly<{
   contagens: StatusContagens
   total: number
-}) {
+}>) {
   return (
     <section>
       <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">

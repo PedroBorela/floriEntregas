@@ -40,16 +40,15 @@ function gerarMensagem(pedido: Pedido, tipo: Tipo): string {
     if (pedido.tipo === 'entrega') {
       linhas.push(`*Entrega:* ${previsao}`)
       if (pedido.logradouro) {
-        linhas.push(
-          `*Endereço:* ${pedido.logradouro}${pedido.numero ? `, ${pedido.numero}` : ''}${pedido.bairro ? ` — ${pedido.bairro}` : ''}`
-        )
+        const numero = pedido.numero ? `, ${pedido.numero}` : ''
+        const bairro = pedido.bairro ? ` — ${pedido.bairro}` : ''
+        linhas.push(`*Endereço:* ${pedido.logradouro}${numero}${bairro}`)
       }
     } else {
       linhas.push(`*Retirada:* ${previsao}`)
     }
 
-    linhas.push('')
-    linhas.push(`*Total:* ${formatarMoeda(pedido.valor_total)}`)
+    linhas.push('', `*Total:* ${formatarMoeda(pedido.valor_total)}`)
 
     if (pedido.pagamento_parcial) {
       const restante = Math.max(0, pedido.valor_total - pedido.valor_pago)
@@ -58,9 +57,7 @@ function gerarMensagem(pedido: Pedido, tipo: Tipo): string {
       linhas.push('*Pagamento:* a realizar')
     }
 
-    linhas.push('')
-    linhas.push('Qualquer dúvida, é só chamar.')
-    linhas.push('Natureza em Flores')
+    linhas.push('', 'Qualquer dúvida, é só chamar.', 'Natureza em Flores')
 
     return linhas.join('\n')
   }
@@ -77,7 +74,7 @@ function gerarMensagem(pedido: Pedido, tipo: Tipo): string {
   ].join('\n')
 }
 
-export default function BotaoWhatsApp({ pedido, tipo }: Props) {
+export default function BotaoWhatsApp({ pedido, tipo }: Readonly<Props>) {
   const [enviado, setEnviado] = useState(
     tipo === 'confirmacao' ? pedido.whatsapp_confirmacao_enviado : pedido.whatsapp_saiu_enviado
   )

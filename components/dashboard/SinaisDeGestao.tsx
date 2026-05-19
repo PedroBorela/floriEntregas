@@ -17,7 +17,7 @@ export type KpisData = {
   }
 }
 
-function Variacao({ pct, label }: { pct: number | null; label: string }) {
+function Variacao({ pct, label }: Readonly<{ pct: number | null; label: string }>) {
   if (pct === null) {
     return <span className="text-[10px] text-slate-300">{label}: sem comparativo</span>
   }
@@ -44,13 +44,13 @@ function KpiCard({
   var7d,
   var28d,
   valorCor,
-}: {
+}: Readonly<{
   label: string
   valor: string
   var7d: number | null
   var28d: number | null
   valorCor?: string
-}) {
+}>) {
   return (
     <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
       <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
@@ -66,7 +66,7 @@ function KpiCard({
   )
 }
 
-export default function SinaisDeGestao({ kpis }: { kpis: KpisData }) {
+export default function SinaisDeGestao({ kpis }: Readonly<{ kpis: KpisData }>) {
   const { hoje, variacoes } = kpis
 
   return (

@@ -65,7 +65,7 @@ export default function PaginaPedidos() {
           if (Array.isArray(data) && data.length > 0 && !cancelled) {
             setCoordsExtras((prev) => ({
               ...prev,
-              [p.id]: { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) },
+              [p.id]: { lat: Number.parseFloat(data[0].lat), lng: Number.parseFloat(data[0].lon) },
             }))
           }
         } catch {

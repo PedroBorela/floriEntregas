@@ -21,7 +21,7 @@ interface Props {
   onEditar?: (produto: ProdutoCatalogo) => void
 }
 
-export default function CardProduto({ produto, onPrecoChange, onToggleAtivo, onEditar }: Props) {
+export default function CardProduto({ produto, onPrecoChange, onToggleAtivo, onEditar }: Readonly<Props>) {
   const [dicaAberta, setDicaAberta] = useState(false)
   const [editandoPreco, setEditandoPreco] = useState(false)
   const [precoTemp, setPrecoTemp] = useState(String(produto.preco_padrao))

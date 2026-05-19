@@ -29,7 +29,7 @@ const STATUS_LABEL: Record<string, string> = {
   cancelado:    'Cancelado',
 }
 
-export default function PedidosHoje({ pedidos }: { pedidos: PedidoHoje[] }) {
+export default function PedidosHoje({ pedidos }: Readonly<{ pedidos: PedidoHoje[] }>) {
   return (
     <section>
       <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">

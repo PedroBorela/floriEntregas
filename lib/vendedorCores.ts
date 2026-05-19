@@ -20,7 +20,7 @@ const PALETA = [
 
 function hashId(id: string): number {
   let h = 0
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) & 0xffffffff
+  for (let i = 0; i < id.length; i++) h = (h * 31 + (id.codePointAt(i) ?? 0)) & 0xffffffff
   return Math.abs(h)
 }
 

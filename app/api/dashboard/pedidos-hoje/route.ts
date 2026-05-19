@@ -17,7 +17,7 @@ export async function GET() {
   const pedidos = (data ?? []).map((p) => {
     const itens = (p.pedido_itens as ItemRow[] | null) ?? []
     const itens_resumo =
-      itens
+      [...itens]
         .sort((a, b) => a.ordem - b.ordem)
         .slice(0, 2)
         .map((i) => i.nome_produto)
@@ -46,7 +46,7 @@ export async function GET() {
     const tA = ha.match(/^(\d{1,2}):(\d{2})/)
     const tB = hb.match(/^(\d{1,2}):(\d{2})/)
     if (tA && tB) {
-      return (parseInt(tA[1]) * 60 + parseInt(tA[2])) - (parseInt(tB[1]) * 60 + parseInt(tB[2]))
+      return (Number.parseInt(tA[1]) * 60 + Number.parseInt(tA[2])) - (Number.parseInt(tB[1]) * 60 + Number.parseInt(tB[2]))
     }
     return ha.localeCompare(hb, 'pt-BR')
   })

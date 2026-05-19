@@ -40,7 +40,7 @@ const STATUS_ICONE: Record<string, LucideIcon> = {
   cancelado:    XCircle,
 }
 
-export default function RastreioPedidoPage({ params }: { params: Promise<{ codigo: string }> }) {
+export default function RastreioPedidoPage({ params }: Readonly<{ params: Promise<{ codigo: string }> }>) {
   const { codigo } = use(params)
   const [pedido, setPedido] = useState<PedidoPublico | null>(null)
   const [loading, setLoading] = useState(true)

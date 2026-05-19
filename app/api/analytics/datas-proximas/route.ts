@@ -5,9 +5,9 @@ function diasAte(iso: string): number {
   const hoje = new Date()
   hoje.setHours(0, 0, 0, 0)
   const [anoStr, mesStr, diaStr] = iso.split('-')
-  const ano = parseInt(anoStr)
-  const mes = parseInt(mesStr) - 1
-  const dia = parseInt(diaStr)
+  const ano = Number.parseInt(anoStr)
+  const mes = Number.parseInt(mesStr) - 1
+  const dia = Number.parseInt(diaStr)
   const anoBase = ano > 0 ? ano : hoje.getFullYear()
   let proxima = new Date(anoBase, mes, dia)
   proxima.setHours(0, 0, 0, 0)

@@ -10,7 +10,7 @@ interface Props {
   vendedorInicial: { id: string; nome: string } | null
 }
 
-export default function BotaoVendedor({ pedidoId, vendedorInicial }: Props) {
+export default function BotaoVendedor({ pedidoId, vendedorInicial }: Readonly<Props>) {
   const [vendedor, setVendedor] = useState(vendedorInicial)
   const [modal, setModal] = useState(false)
   const [salvando, setSalvando] = useState(false)

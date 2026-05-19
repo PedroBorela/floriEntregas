@@ -61,7 +61,7 @@ export default function ListaPedidos({
   tipoBloqueado,
   excluirBalcao = false,
   semSeparacaoFinalizado = false,
-}: ListaPedidosProps) {
+}: Readonly<ListaPedidosProps>) {
   const [pedidos, setPedidos] = useState<Pedido[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)

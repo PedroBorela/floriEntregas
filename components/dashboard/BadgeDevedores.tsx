@@ -42,7 +42,7 @@ function formatarData(iso: string) {
   return `${dia}/${mes}`
 }
 
-export default function BadgeDevedores({ count, totalDevido }: { count: number; totalDevido: number }) {
+export default function BadgeDevedores({ count, totalDevido }: Readonly<{ count: number; totalDevido: number }>) {
   const [aberto, setAberto] = useState(false)
   const [devedores, setDevedores] = useState<Devedor[]>([])
   const [loading, setLoading] = useState(false)

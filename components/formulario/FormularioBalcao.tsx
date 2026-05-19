@@ -37,7 +37,7 @@ export default function FormularioBalcao() {
   const [modalVendedor, setModalVendedor] = useState(false)
 
   const valorProdutos = itens.reduce((s, i) => s + i.valor_unitario * i.quantidade, 0)
-  const valorPagoNum = parseFloat(valorPago) || 0
+  const valorPagoNum = Number.parseFloat(valorPago) || 0
   const valorRestante = Math.max(0, valorProdutos - valorPagoNum)
 
   async function handleSubmit(e: React.SyntheticEvent) {
@@ -60,7 +60,7 @@ export default function FormularioBalcao() {
         pago,
         pagamento_tipo: pagamentoTipo,
         pagamento_parcial: pago ? pagamentoParcial : false,
-        valor_pago: pago && pagamentoParcial ? parseFloat(valorPago) || 0 : pago ? valorProdutos : 0,
+        valor_pago: pago && pagamentoParcial ? Number.parseFloat(valorPago) || 0 : pago ? valorProdutos : 0,
         valor_produtos: valorProdutos,
         valor_frete: 0,
         valor_total: valorProdutos,

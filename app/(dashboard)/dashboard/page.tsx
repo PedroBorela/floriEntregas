@@ -29,13 +29,13 @@ function Skeleton() {
   return (
     <div className="space-y-8 animate-pulse">
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-        {[...Array(6)].map((_, i) => (
+        {Array.from({ length: 6 }, (_, i) => (
           <div key={i} className="h-24 bg-slate-100 rounded-2xl" />
         ))}
       </div>
       <div className="h-64 bg-slate-100 rounded-2xl" />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[...Array(4)].map((_, i) => (
+        {Array.from({ length: 4 }, (_, i) => (
           <div key={i} className="h-36 bg-slate-100 rounded-2xl" />
         ))}
       </div>
@@ -43,7 +43,7 @@ function Skeleton() {
   )
 }
 
-function ErroState({ erro, onRetry }: { erro: string | null; onRetry: () => void }) {
+function ErroState({ erro, onRetry }: Readonly<{ erro: string | null; onRetry: () => void }>) {
   return (
     <div className="bg-white rounded-2xl p-12 text-center border border-slate-100 shadow-sm">
       <p className="text-lg font-bold text-slate-800">Erro ao carregar painel</p>

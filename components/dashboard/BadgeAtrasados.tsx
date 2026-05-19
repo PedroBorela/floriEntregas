@@ -36,7 +36,7 @@ function formatarData(iso: string) {
   return `${dia}/${mes}`
 }
 
-export default function BadgeAtrasados({ count }: { count: number }) {
+export default function BadgeAtrasados({ count }: Readonly<{ count: number }>) {
   const [aberto, setAberto] = useState(false)
   const [pedidos, setPedidos] = useState<PedidoAtrasado[]>([])
   const [loading, setLoading] = useState(false)

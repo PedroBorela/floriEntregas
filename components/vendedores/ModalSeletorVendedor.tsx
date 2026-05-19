@@ -12,7 +12,7 @@ interface Props {
   vendedorAtualId?: string | null
 }
 
-export default function ModalSeletorVendedor({ open, onClose, onSelect, vendedorAtualId }: Props) {
+export default function ModalSeletorVendedor({ open, onClose, onSelect, vendedorAtualId }: Readonly<Props>) {
   const [vendedores, setVendedores] = useState<Vendedor[]>([])
   const [busca, setBusca] = useState('')
   const [loading, setLoading] = useState(false)

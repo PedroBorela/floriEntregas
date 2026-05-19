@@ -22,7 +22,7 @@ export async function GET() {
   const pedidos = (data ?? []).map((p) => {
     const itens = (p.pedido_itens as ItemRow[] | null) ?? []
     const itens_resumo =
-      itens
+      [...itens]
         .sort((a, b) => a.ordem - b.ordem)
         .slice(0, 2)
         .map((i) => i.nome_produto)

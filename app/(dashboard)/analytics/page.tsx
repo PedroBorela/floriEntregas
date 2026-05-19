@@ -55,12 +55,12 @@ const PAG_COLORS: Record<string, string> = {
   cartao_debito: COLORS.warning,
 }
 
-function KpiCard({ label, value, sub, color }: {
+function KpiCard({ label, value, sub, color }: Readonly<{
   label: string
   value: string
   sub?: string
   color: string
-}) {
+}>) {
   return (
     <div className="bg-white rounded-2xl py-5 px-3 shadow-sm border border-slate-100 hover:shadow-md transition-shadow text-center flex flex-col justify-center min-h-[140px] overflow-hidden">
       <p className="text-xl sm:text-2xl font-black tracking-tight whitespace-nowrap overflow-hidden text-ellipsis" style={{ color }}>{value}</p>
@@ -70,7 +70,7 @@ function KpiCard({ label, value, sub, color }: {
   )
 }
 
-function CardShell({ title, children, className = "" }: { title: string; children: React.ReactNode; className?: string }) {
+function CardShell({ title, children, className = "" }: Readonly<{ title: string; children: React.ReactNode; className?: string }>) {
   return (
     <div className={`bg-white rounded-3xl shadow-sm border border-slate-100 p-6 ${className}`}>
       <div className="flex items-center justify-between mb-6">
@@ -247,7 +247,7 @@ function DatasProximasPanel() {
   )
 }
 
-function DashboardContent({ dados }: { dados: Analytics }) {
+function DashboardContent({ dados }: Readonly<{ dados: Analytics }>) {
   const { kpis, top_produtos, por_dia, pagamentos, top_clientes, top_vendedores } = dados
 
   const totalPag = pagamentos.reduce((s, p) => s + p.qtd, 0)

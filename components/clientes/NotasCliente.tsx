@@ -15,7 +15,7 @@ interface Props {
   onChange: (notas: ClienteNota[]) => void
 }
 
-export default function NotasCliente({ clienteId, notas, onChange }: Props) {
+export default function NotasCliente({ clienteId, notas, onChange }: Readonly<Props>) {
   const [tipo, setTipo] = useState<'preferencia' | 'observacao'>('preferencia')
   const [texto, setTexto] = useState('')
   const [salvando, setSalvando] = useState(false)
@@ -45,8 +45,6 @@ export default function NotasCliente({ clienteId, notas, onChange }: Props) {
     const res = await fetch(`/api/clientes/${clienteId}/notas/${id}`, { method: 'DELETE' })
     if (res.ok) onChange(notas.filter((n) => n.id !== id))
   }
-
-  const grupos = TIPOS.map((t) => ({ ...t, itens: notas.filter((n) => n.tipo === t.value) }))
 
   return (
     <div className="space-y-3">
