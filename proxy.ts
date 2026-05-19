@@ -1,8 +1,8 @@
-import { createHmac } from 'crypto'
+import { createHmac } from 'node:crypto'
 import { NextRequest, NextResponse } from 'next/server'
 
 function computeExpectedToken(): string {
-  return createHmac('sha256', process.env.ANALYTICS_SESSION_SECRET!)
+  return createHmac('sha256', process.env.ANALYTICS_SESSION_SECRET ?? '')
     .update('analytics-auth')
     .digest('hex')
 }
@@ -29,9 +29,6 @@ export function proxy(request: NextRequest) {
   }
 
   if (!isAuthenticated(request)) {
-    if (pathname.startsWith('/api/')) {
-      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
-    }
     return NextResponse.redirect(new URL('/analytics/login', request.url))
   }
 
@@ -39,5 +36,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/analytics(.*)', '/api/analytics(.*)'],
+  matcher: ['/analytics(.*)'],
 }
