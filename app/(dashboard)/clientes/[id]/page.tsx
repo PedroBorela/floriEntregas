@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import DatasEspeciais from '@/components/clientes/DatasEspeciais'
 import NotasCliente from '@/components/clientes/NotasCliente'
@@ -19,6 +19,8 @@ function mascaraCep(valor: string) {
 export default function ClientePerfilPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const voltarHref = searchParams.get('from') ?? '/clientes'
   const { toast } = useToast()
 
   const [cliente, setCliente] = useState<Cliente | null>(null)
@@ -178,7 +180,7 @@ export default function ClientePerfilPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-4">
-        <Link href="/clientes" className="text-gray-400 hover:text-gray-600 text-sm">← Clientes</Link>
+        <Link href={voltarHref} className="text-gray-400 hover:text-gray-600 text-sm">← Voltar</Link>
         <h1 className="text-xl font-bold text-green-900 flex-1 truncate">{cliente.nome}</h1>
         {!editando && (
           <div className="flex gap-2">

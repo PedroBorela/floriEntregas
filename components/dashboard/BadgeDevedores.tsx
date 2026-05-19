@@ -96,7 +96,7 @@ export default function BadgeDevedores({ count, totalDevido }: Readonly<{ count:
               paginaAtual.map((p) => (
                 <Link
                   key={p.id}
-                  href={`/pedidos/${p.codigo}`}
+                  href={`/pedidos/${p.codigo}?from=/dashboard`}
                   className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors"
                 >
                   {/* Valor devido */}

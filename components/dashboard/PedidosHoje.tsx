@@ -32,13 +32,13 @@ const STATUS_LABEL: Record<string, string> = {
 export default function PedidosHoje({ pedidos }: Readonly<{ pedidos: PedidoHoje[] }>) {
   return (
     <section>
-      <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">
+      <h2 className="text-xs font-bold uppercase tracking-widest text-slate-600 mb-3">
         Pedidos de hoje ·{' '}
-        <span className="text-slate-600">{pedidos.length}</span>
+        <span className="text-slate-800">{pedidos.length}</span>
       </h2>
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         {pedidos.length === 0 ? (
-          <p className="text-sm text-slate-400 text-center py-10">
+          <p className="text-sm text-slate-500 text-center py-10">
             Nenhum pedido agendado para hoje
           </p>
         ) : (
@@ -46,17 +46,17 @@ export default function PedidosHoje({ pedidos }: Readonly<{ pedidos: PedidoHoje[
             {pedidos.map((p) => (
               <li key={p.id}>
                 <Link
-                  href={`/pedidos/${p.codigo}`}
+                  href={`/pedidos/${p.codigo}?from=/dashboard`}
                   className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors"
                 >
-                  <span className="w-20 text-xs font-semibold text-slate-500 shrink-0 truncate">
+                  <span className="w-20 text-xs font-semibold text-slate-700 shrink-0 truncate">
                     {p.horario_entrega ?? '—'}
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-slate-800 truncate">
                       {p.codigo} · {p.cliente_nome}
                     </p>
-                    <p className="text-xs text-slate-400 truncate">
+                    <p className="text-xs text-slate-500 truncate">
                       {p.itens_resumo}
                       {p.bairro ? ` · ${p.bairro}` : ''}
                     </p>

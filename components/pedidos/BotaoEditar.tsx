@@ -9,7 +9,7 @@ interface Props {
   pedido: Pedido
 }
 
-const STATUS_EDITAVEIS: PedidoStatus[] = ['pendente', 'em_preparo', 'saiu_entrega']
+const STATUS_EDITAVEIS: PedidoStatus[] = ['pendente', 'em_preparo', 'saiu_entrega', 'entregue', 'retirado', 'vendido']
 
 export default function BotaoEditar({ pedido }: Props) {
   const [aberto, setAberto] = useState(false)

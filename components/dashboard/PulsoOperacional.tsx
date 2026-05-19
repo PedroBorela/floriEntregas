@@ -15,11 +15,10 @@ const CONFIG: Record<keyof StatusContagens, { label: string; sub: string; bg: st
   entregue:     { label: 'Entregues',       sub: 'concluídos hoje',        bg: 'bg-green-50',  num: 'text-green-800' },
   retirado:     { label: 'Retirados',       sub: 'retirados na loja hoje', bg: 'bg-green-50',  num: 'text-green-800' },
   vendido:      { label: 'Vendidos',        sub: 'vendas no balcão hoje',  bg: 'bg-green-50',  num: 'text-green-800' },
-  cancelado:    { label: 'Cancelados',      sub: 'cancelados hoje',        bg: 'bg-red-50',    num: 'text-red-700'  },
 }
 
 const ORDEM: (keyof StatusContagens)[] = [
-  'pendente', 'em_preparo', 'saiu_entrega', 'entregue', 'retirado', 'vendido', 'cancelado',
+  'pendente', 'em_preparo', 'saiu_entrega', 'entregue', 'retirado', 'vendido',
 ]
 
 export default function PulsoOperacional({
@@ -31,9 +30,9 @@ export default function PulsoOperacional({
 }>) {
   return (
     <section>
-      <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">
+      <h2 className="text-xs font-bold uppercase tracking-widest text-slate-600 mb-3">
         Pulso operacional ·{' '}
-        <span className="text-slate-600">{total} pedidos</span>
+        <span className="text-slate-800">{total} pedidos</span>
       </h2>
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
         {ORDEM.map((status) => {
@@ -46,10 +45,10 @@ export default function PulsoOperacional({
               <p className={`text-[22px] font-bold leading-none ${num}`}>
                 {contagens[status]}
               </p>
-              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500 mt-2 leading-tight">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-700 mt-2 leading-tight">
                 {label}
               </p>
-              <p className="text-[10px] text-slate-400 mt-1 leading-tight">{sub}</p>
+              <p className="text-[10px] text-slate-600 mt-1 leading-tight">{sub}</p>
             </div>
           )
         })}

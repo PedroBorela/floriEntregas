@@ -180,73 +180,6 @@ export default function AnalyticsPage() {
   )
 }
 
-interface DataProxima {
-  id: string
-  nome: string
-  data: string
-  cliente_id: string
-  clientes: { id: string; nome: string } | null
-  dias: number
-}
-
-function labelDias(dias: number): { texto: string; cor: string } {
-  if (dias === 0) return { texto: 'Hoje!', cor: 'bg-green-100 text-green-800' }
-  if (dias === 1) return { texto: 'Amanhã', cor: 'bg-green-100 text-green-700' }
-  if (dias <= 7) return { texto: `em ${dias} dias`, cor: 'bg-amber-100 text-amber-800' }
-  if (dias <= 30) return { texto: `em ${dias} dias`, cor: 'bg-blue-100 text-blue-700' }
-  return { texto: `em ${dias} dias`, cor: 'bg-gray-100 text-gray-600' }
-}
-
-function formatarDataExibicao(iso: string) {
-  const [, mes, dia] = iso.split('-')
-  return `${dia}/${mes}`
-}
-
-function DatasProximasPanel() {
-  const [datas, setDatas] = useState<DataProxima[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch('/api/analytics/datas-proximas')
-      .then((r) => r.json())
-      .then((d) => { setDatas(Array.isArray(d) ? d : []); setLoading(false) })
-      .catch(() => setLoading(false))
-  }, [])
-
-  if (loading) return null
-  if (!datas.length) return null
-
-  return (
-    <CardShell title="Datas Especiais Próximas">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-        {datas.slice(0, 10).map((d) => {
-          const { texto, cor } = labelDias(d.dias)
-          return (
-            <Link
-              key={d.id}
-              href={d.clientes ? `/clientes/${d.clientes.id}` : '#'}
-              className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 transition border border-transparent hover:border-slate-100 group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-lg shrink-0">
-                🎂
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-slate-800 truncate group-hover:text-green-800 transition-colors">
-                  {d.clientes?.nome ?? '—'}
-                </p>
-                <p className="text-xs text-slate-500 truncate">{d.nome} · {formatarDataExibicao(d.data)}</p>
-              </div>
-              <span className={`text-xs font-semibold px-2 py-1 rounded-full shrink-0 ${cor}`}>
-                {texto}
-              </span>
-            </Link>
-          )
-        })}
-      </div>
-    </CardShell>
-  )
-}
-
 function DashboardContent({ dados }: Readonly<{ dados: Analytics }>) {
   const { kpis, top_produtos, por_dia, pagamentos, top_clientes, top_vendedores } = dados
 
@@ -446,9 +379,6 @@ function DashboardContent({ dados }: Readonly<{ dados: Analytics }>) {
           </div>
         </CardShell>
       </div>
-
-      {/* Datas Próximas */}
-      <DatasProximasPanel />
 
       {/* Top Clients Table-like list */}
       <CardShell title="Melhores Clientes">

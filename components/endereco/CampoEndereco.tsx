@@ -60,6 +60,67 @@ interface Props {
   enderecosExistentes?: EnderecoExistente[]
 }
 
+interface FreteFieldProps {
+  zonaMatch: { nome: string; valor: number } | null
+  semZona: boolean
+  valorFrete: number
+  onValorChange: (v: number) => void
+  onRestaurar: () => void
+}
+
+function FreteInput({ valor, onChange }: Readonly<{ valor: number; onChange: (v: number) => void }>) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-sm text-gray-600">R$</span>
+      <input
+        type="number"
+        className="form-input w-28"
+        min="0"
+        step="0.50"
+        placeholder="0,00"
+        value={valor || ''}
+        onChange={(e) => onChange(Number.parseFloat(e.target.value) || 0)}
+      />
+    </div>
+  )
+}
+
+function FreteField({ zonaMatch, semZona, valorFrete, onValorChange, onRestaurar }: Readonly<FreteFieldProps>) {
+  if (zonaMatch) {
+    return (
+      <div className="p-3 bg-green-50 border border-green-200 rounded-lg space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-green-700 text-sm font-medium">Frete — {zonaMatch.nome}</span>
+          {valorFrete !== zonaMatch.valor && (
+            <button
+              type="button"
+              onClick={onRestaurar}
+              className="text-xs text-gray-400 hover:text-green-700 transition"
+            >
+              Restaurar padrão ({formatarMoeda(zonaMatch.valor)})
+            </button>
+          )}
+        </div>
+        <FreteInput valor={valorFrete} onChange={onValorChange} />
+      </div>
+    )
+  }
+  if (semZona) {
+    return (
+      <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg space-y-2">
+        <p className="text-amber-700 text-sm">Zona não cadastrada — informe o valor do frete:</p>
+        <FreteInput valor={valorFrete} onChange={onValorChange} />
+      </div>
+    )
+  }
+  return (
+    <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+      <p className="text-slate-600 text-sm">Valor do frete:</p>
+      <FreteInput valor={valorFrete} onChange={onValorChange} />
+    </div>
+  )
+}
+
 function mascaraCep(valor: string) {
   const d = valor.replace(/\D/g, '').slice(0, 8)
   return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d
@@ -156,7 +217,7 @@ export default function CampoEndereco({ value, onChange, enderecosExistentes }: 
     const cidadeGeo = s.address?.city || s.address?.town || s.address?.village || s.address?.municipality || value.cidade
     setTermoBusca(rua)
     setGeocAberto(false)
-    onChange({ ...value, endereco_id: null, logradouro: rua, bairro: bairroGeo, cidade: cidadeGeo, latitude: Number.Number.parseFloat(s.lat), longitude: Number.Number.parseFloat(s.lon) })
+    onChange({ ...value, endereco_id: null, logradouro: rua, bairro: bairroGeo, cidade: cidadeGeo, latitude: Number.parseFloat(s.lat), longitude: Number.parseFloat(s.lon) })
   }
 
   function set(field: keyof EnderecoData, val: string | number | null) {
@@ -295,54 +356,16 @@ export default function CampoEndereco({ value, onChange, enderecosExistentes }: 
         </div>
       )}
 
-      {/* Badge de frete */}
-      {value.bairro.trim() && (
-        <div className="mt-1">
-          {zonaMatch ? (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-green-700 text-sm font-medium">Frete — {zonaMatch.nome}</span>
-                {value.valor_frete !== zonaMatch.valor && (
-                  <button
-                    type="button"
-                    onClick={() => set('valor_frete', zonaMatch.valor)}
-                    className="text-xs text-gray-400 hover:text-green-700 transition"
-                  >
-                    Restaurar padrão ({formatarMoeda(zonaMatch.valor)})
-                  </button>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">R$</span>
-                <input
-                  type="number"
-                  className="form-input w-28"
-                  min="0"
-                  step="0.50"
-                  value={value.valor_frete || ''}
-                  onChange={(e) => set('valor_frete', Number.parseFloat(e.target.value) || 0)}
-                />
-              </div>
-            </div>
-          ) : semZona ? (
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg space-y-2">
-              <p className="text-amber-700 text-sm">Zona não cadastrada — informe o valor do frete:</p>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">R$</span>
-                <input
-                  type="number"
-                  className="form-input w-28"
-                  min="0"
-                  step="0.50"
-                  placeholder="0,00"
-                  value={value.valor_frete || ''}
-                  onChange={(e) => set('valor_frete', Number.parseFloat(e.target.value) || 0)}
-                />
-              </div>
-            </div>
-          ) : null}
-        </div>
-      )}
+      {/* Zona de frete */}
+      <div className="mt-1">
+        <FreteField
+          zonaMatch={zonaMatch}
+          semZona={semZona}
+          valorFrete={value.valor_frete}
+          onValorChange={(v) => set('valor_frete', v)}
+          onRestaurar={() => zonaMatch && set('valor_frete', zonaMatch.valor)}
+        />
+      </div>
     </div>
   )
 }

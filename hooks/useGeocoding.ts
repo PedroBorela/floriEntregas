@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { normalizar } from '@/lib/formatters'
 
 export interface SugestaoEndereco {
   display_name: string
@@ -28,8 +27,7 @@ export function useGeocoding(termo: string, delay = 500) {
   useEffect(() => {
     if (timer.current) clearTimeout(timer.current)
 
-    const q = normalizar(termo)
-    if (q.length < 3) {
+    if (termo.trim().length < 3) {
       setSugestoes([])
       return
     }
@@ -37,7 +35,7 @@ export function useGeocoding(termo: string, delay = 500) {
     timer.current = setTimeout(async () => {
       setBuscando(true)
       try {
-        const res = await fetch(`/api/geocoding?q=${encodeURIComponent(q)}`)
+        const res = await fetch(`/api/geocoding?q=${encodeURIComponent(termo.trim())}`)
         const data = await res.json()
         setSugestoes(Array.isArray(data) ? data : [])
       } catch {

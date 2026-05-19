@@ -8,6 +8,11 @@ import PulsoOperacional from '@/components/dashboard/PulsoOperacional'
 import PedidosHoje from '@/components/dashboard/PedidosHoje'
 import SinaisDeGestao from '@/components/dashboard/SinaisDeGestao'
 import BadgeDevedores from '@/components/dashboard/BadgeDevedores'
+import RankingVendedores from '@/components/dashboard/RankingVendedores'
+import DatasProximas from '@/components/dashboard/DatasProximas'
+import BadgeDatasProximas from '@/components/dashboard/BadgeDatasProximas'
+import type { VendedorHoje } from '@/components/dashboard/RankingVendedores'
+import type { DataProxima } from '@/components/dashboard/DatasProximas'
 import type { StatusContagens } from '@/components/dashboard/PulsoOperacional'
 import type { PedidoHoje } from '@/components/dashboard/PedidosHoje'
 import type { KpisData } from '@/components/dashboard/SinaisDeGestao'
@@ -39,6 +44,8 @@ function Skeleton() {
           <div key={i} className="h-36 bg-slate-100 rounded-2xl" />
         ))}
       </div>
+      <div className="h-32 bg-slate-100 rounded-2xl" />
+      <div className="h-44 bg-slate-100 rounded-2xl" />
     </div>
   )
 }
@@ -65,6 +72,8 @@ export default function DashboardPage() {
   const [pedidosHoje, setPedidosHoje] = useState<PedidoHoje[] | null>(null)
   const [kpis, setKpis] = useState<KpisData | null>(null)
   const [devedores, setDevedores] = useState<DevedoresData | null>(null)
+  const [vendedores, setVendedores] = useState<VendedorHoje[] | null>(null)
+  const [datasProximas, setDatasProximas] = useState<DataProxima[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [atualizando, setAtualizando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
@@ -96,12 +105,22 @@ export default function DashboardPage() {
         if (!r.ok) throw new Error(await r.text().catch(() => `HTTP ${r.status}`))
         return r.json() as Promise<DevedoresData>
       }),
+      fetch('/api/dashboard/vendedores-hoje').then(async (r) => {
+        if (!r.ok) throw new Error(await r.text().catch(() => `HTTP ${r.status}`))
+        return r.json() as Promise<VendedorHoje[]>
+      }),
+      fetch('/api/analytics/datas-proximas').then(async (r) => {
+        if (!r.ok) throw new Error(await r.text().catch(() => `HTTP ${r.status}`))
+        return r.json() as Promise<DataProxima[]>
+      }),
     ])
-      .then(([p, ph, k, d]) => {
+      .then(([p, ph, k, d, v, dp]) => {
         setPulso(p)
         setPedidosHoje(ph)
         setKpis(k)
         setDevedores(d)
+        setVendedores(v)
+        setDatasProximas(dp)
         setAtualizadoEm(new Date())
         setLoading(false)
         setAtualizando(false)
@@ -144,7 +163,7 @@ export default function DashboardPage() {
           <button
             onClick={() => carregar(true)}
             disabled={atualizando}
-            className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-green-700 disabled:opacity-40 transition-colors"
+            className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-green-700 disabled:opacity-40 transition-colors"
           >
             <RefreshCw
               size={13}
@@ -153,7 +172,7 @@ export default function DashboardPage() {
             Atualizar
           </button>
           {horaAtualizada && (
-            <span className="text-[10px] text-slate-300">
+            <span className="text-[10px] text-slate-500">
               atualizado às {horaAtualizada}
             </span>
           )}
@@ -170,9 +189,12 @@ export default function DashboardPage() {
           {devedores && devedores.devedores.length > 0 && (
             <BadgeDevedores count={devedores.devedores.length} totalDevido={devedores.total_devido} />
           )}
+          {datasProximas && <BadgeDatasProximas datas={datasProximas.filter((d) => d.dias <= 7)} />}
           <PulsoOperacional contagens={pulso.contagens} total={pulso.total} />
           <PedidosHoje pedidos={pedidosHoje} />
           <SinaisDeGestao kpis={kpis} />
+          <RankingVendedores vendedores={vendedores} />
+          <DatasProximas datas={datasProximas} />
         </>
       )}
     </div>

@@ -16,7 +16,7 @@ export default function HeaderSaudacao() {
       </p>
       <p className="text-2xl font-medium text-slate-800 mt-1">
         {saudacao}{' '}
-        <span className="text-slate-400 font-normal">— {dataFormatada}</span>
+        <span className="text-slate-600 font-normal">— {dataFormatada}</span>
       </p>
     </div>
   )

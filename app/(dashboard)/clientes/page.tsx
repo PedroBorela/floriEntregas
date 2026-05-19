@@ -10,7 +10,7 @@ export default function ClientesPage() {
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [total, setTotal] = useState(0)
   const [busca, setBusca] = useState('')
-  const [ordem, setOrdem] = useState<'nome' | 'recente'>('nome')
+  const [ordem, setOrdem] = useState<'nome' | 'recente'>('recente')
   const [loading, setLoading] = useState(false)
 
   const carregar = useCallback(async () => {
