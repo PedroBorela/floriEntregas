@@ -147,7 +147,7 @@ export default function FormularioEntrega() {
         await fetch(`/api/clientes/${cid}/datas`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nome: d.nome.trim(), data: d.data }),
+          body: JSON.stringify({ nome: d.nome.trim(), data: d.data, vendedor_id: vendedorId }),
         })
       }
       setCodigoPedido(json.pedido.codigo)
