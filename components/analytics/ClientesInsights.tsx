@@ -117,7 +117,7 @@ export default function ClientesInsights({ dias }: Readonly<{ dias: number }>) {
                     width={110}
                   />
                   <Tooltip
-                    formatter={(v: any, name: string) => [v, name === 'total_pedidos' ? 'Pedidos' : 'Receita']}
+                    formatter={(v: any, name: any) => [v, name === 'total_pedidos' ? 'Pedidos' : 'Receita']}
                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', padding: '12px' }}
                   />
                   <Bar dataKey="total_pedidos" name="Pedidos" fill={COLORS.primary} radius={[0, 6, 6, 0]} barSize={18} />

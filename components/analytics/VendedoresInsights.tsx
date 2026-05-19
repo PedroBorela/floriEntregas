@@ -119,7 +119,7 @@ export default function VendedoresInsights({ dias }: Readonly<{ dias: number }>)
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={COLORS.gray[100]} />
                 <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: COLORS.gray[400], fontWeight: 600 }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: COLORS.gray[400], fontWeight: 600 }} />
-                <Tooltip formatter={(v: any, name: string) => [formatarMoeda(Number(v)), name]} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', padding: '12px' }} />
+                <Tooltip formatter={(v: any, name: any) => [formatarMoeda(Number(v)), name]} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', padding: '12px' }} />
                 {allNames.map((nome, i) => (
                   <Line key={nome} type="monotone" dataKey={nome} stroke={LINE_COLORS[i % LINE_COLORS.length]} strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 5 }} />
                 ))}

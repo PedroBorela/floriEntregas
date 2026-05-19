@@ -27,7 +27,8 @@ export async function GET() {
 
   for (const r of registros) {
     const vid = r.vendedor_id as string | null
-    const vnome = (r.vendedor as { nome: string } | null)?.nome ?? null
+    const v = r.vendedor as any
+    const vnome = typeof v === 'object' && v !== null ? (Array.isArray(v) ? v[0]?.nome : v.nome) : null
     if (vid && vnome) {
       if (!porVendedor[vid]) porVendedor[vid] = { nome: vnome, total: 0 }
       porVendedor[vid].total++

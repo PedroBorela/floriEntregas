@@ -15,6 +15,7 @@ const CONFIG: Record<keyof StatusContagens, { label: string; sub: string; bg: st
   entregue:     { label: 'Entregues',       sub: 'concluídos hoje',        bg: 'bg-green-50',  num: 'text-green-800' },
   retirado:     { label: 'Retirados',       sub: 'retirados na loja hoje', bg: 'bg-green-50',  num: 'text-green-800' },
   vendido:      { label: 'Vendidos',        sub: 'vendas no balcão hoje',  bg: 'bg-green-50',  num: 'text-green-800' },
+  cancelado:    { label: 'Cancelados',      sub: 'pedidos cancelados',     bg: 'bg-rose-50',   num: 'text-rose-800' },
 }
 
 const ORDEM: (keyof StatusContagens)[] = [

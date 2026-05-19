@@ -31,7 +31,7 @@ function Grafico({ vendedores }: Readonly<{ vendedores: VendedorHoje[] | null }>
             width={90}
           />
           <Tooltip
-            formatter={(value: number) => [formatarMoeda(value), 'Receita']}
+            formatter={(value: any) => [formatarMoeda(Number(value) || 0), 'Receita']}
             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', padding: '10px 14px' }}
           />
           <Bar dataKey="receita" fill="#166534" radius={[0, 6, 6, 0]} barSize={20} />
