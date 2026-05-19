@@ -43,6 +43,8 @@ export interface ClienteData {
   cliente_id: string
   nome: string
   data: string   // ISO date: YYYY-MM-DD
+  vendedor_id: string | null
+  vendedor_nome?: string | null
   created_at: string
 }
 

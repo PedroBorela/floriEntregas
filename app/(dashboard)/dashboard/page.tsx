@@ -11,11 +11,13 @@ import BadgeDevedores from '@/components/dashboard/BadgeDevedores'
 import RankingVendedores from '@/components/dashboard/RankingVendedores'
 import DatasProximas from '@/components/dashboard/DatasProximas'
 import BadgeDatasProximas from '@/components/dashboard/BadgeDatasProximas'
+import TermometroDatas from '@/components/dashboard/TermometroDatas'
 import type { VendedorHoje } from '@/components/dashboard/RankingVendedores'
 import type { DataProxima } from '@/components/dashboard/DatasProximas'
 import type { StatusContagens } from '@/components/dashboard/PulsoOperacional'
 import type { PedidoHoje } from '@/components/dashboard/PedidosHoje'
 import type { KpisData } from '@/components/dashboard/SinaisDeGestao'
+import type { MetaDatasData } from '@/components/dashboard/TermometroDatas'
 
 const INTERVALO_MS = 30_000
 
@@ -74,6 +76,7 @@ export default function DashboardPage() {
   const [devedores, setDevedores] = useState<DevedoresData | null>(null)
   const [vendedores, setVendedores] = useState<VendedorHoje[] | null>(null)
   const [datasProximas, setDatasProximas] = useState<DataProxima[] | null>(null)
+  const [metaDatas, setMetaDatas] = useState<MetaDatasData | null>(null)
   const [loading, setLoading] = useState(true)
   const [atualizando, setAtualizando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
@@ -113,14 +116,19 @@ export default function DashboardPage() {
         if (!r.ok) throw new Error(await r.text().catch(() => `HTTP ${r.status}`))
         return r.json() as Promise<DataProxima[]>
       }),
+      fetch('/api/dashboard/meta-datas').then(async (r) => {
+        if (!r.ok) throw new Error(await r.text().catch(() => `HTTP ${r.status}`))
+        return r.json() as Promise<MetaDatasData>
+      }),
     ])
-      .then(([p, ph, k, d, v, dp]) => {
+      .then(([p, ph, k, d, v, dp, md]) => {
         setPulso(p)
         setPedidosHoje(ph)
         setKpis(k)
         setDevedores(d)
         setVendedores(v)
         setDatasProximas(dp)
+        setMetaDatas(md)
         setAtualizadoEm(new Date())
         setLoading(false)
         setAtualizando(false)
@@ -193,6 +201,7 @@ export default function DashboardPage() {
           <PulsoOperacional contagens={pulso.contagens} total={pulso.total} />
           <PedidosHoje pedidos={pedidosHoje} />
           <SinaisDeGestao kpis={kpis} />
+          {metaDatas && <TermometroDatas data={metaDatas} />}
           <RankingVendedores vendedores={vendedores} />
           <DatasProximas datas={datasProximas} />
         </>

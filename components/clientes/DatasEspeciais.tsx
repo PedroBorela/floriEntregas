@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Gift } from 'lucide-react'
-import type { ClienteData } from '@/lib/types'
+import type { ClienteData, Vendedor } from '@/lib/types'
 
 const SUGESTOES = ['Aniversário', 'Data de casamento']
 
@@ -26,8 +26,17 @@ function formatarDataCompleta(iso: string) {
 export default function DatasEspeciais({ clienteId, datas, onChange }: Props) {
   const [novoNome, setNovoNome] = useState('')
   const [novaData, setNovaData] = useState('')
+  const [vendedorId, setVendedorId] = useState('')
+  const [vendedores, setVendedores] = useState<Vendedor[]>([])
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState('')
+
+  useEffect(() => {
+    fetch('/api/vendedores')
+      .then((r) => r.json())
+      .then((d: Vendedor[]) => setVendedores(Array.isArray(d) ? d.filter((v) => v.ativo) : []))
+      .catch(() => {})
+  }, [])
 
   async function adicionarData() {
     if (!clienteId) return
@@ -41,7 +50,11 @@ export default function DatasEspeciais({ clienteId, datas, onChange }: Props) {
     const res = await fetch(`/api/clientes/${clienteId}/datas`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome: novoNome.trim(), data: novaData }),
+      body: JSON.stringify({
+        nome: novoNome.trim(),
+        data: novaData,
+        vendedor_id: vendedorId || null,
+      }),
     })
 
     setSalvando(false)
@@ -50,6 +63,7 @@ export default function DatasEspeciais({ clienteId, datas, onChange }: Props) {
       onChange([...datas, json.data])
       setNovoNome('')
       setNovaData('')
+      setVendedorId('')
     } else {
       const json = await res.json()
       setErro(json.error ?? 'Erro ao salvar.')
@@ -68,7 +82,6 @@ export default function DatasEspeciais({ clienteId, datas, onChange }: Props) {
     setErro('')
   }
 
-  // Próxima ocorrência de cada data (para mostrar quantos dias faltam)
   function diasAte(iso: string): number | null {
     try {
       const hoje = new Date()
@@ -97,7 +110,12 @@ export default function DatasEspeciais({ clienteId, datas, onChange }: Props) {
                   <Gift size={18} className="shrink-0 text-gray-400" />
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-gray-800">{d.nome}</p>
-                    <p className="text-xs text-gray-500">{formatarDataCompleta(d.data)}</p>
+                    <p className="text-xs text-gray-500">
+                      {formatarDataCompleta(d.data)}
+                      {d.vendedor_nome && (
+                        <span className="ml-1.5 text-green-700">· {d.vendedor_nome}</span>
+                      )}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
@@ -177,6 +195,20 @@ export default function DatasEspeciais({ clienteId, datas, onChange }: Props) {
             </button>
           </div>
         </div>
+
+        {/* Seletor de vendedor */}
+        {vendedores.length > 0 && (
+          <select
+            value={vendedorId}
+            onChange={(e) => setVendedorId(e.target.value)}
+            className="form-input w-full text-sm text-gray-600"
+          >
+            <option value="">Vendedor que cadastrou (opcional)</option>
+            {vendedores.map((v) => (
+              <option key={v.id} value={v.id}>{v.nome}</option>
+            ))}
+          </select>
+        )}
 
         {!clienteId && (
           <p className="text-xs text-amber-600">Cliente novo — datas poderão ser adicionadas após salvar o pedido.</p>
