@@ -52,7 +52,7 @@ export async function GET(req: Request) {
   }
 
   const total_pedidos = pedidos.length
-  const receita_total = pedidos.reduce((s, p) => s + Number.Number.parseFloat(String(p.valor_total ?? 0)), 0)
+  const receita_total = pedidos.reduce((s, p) => s + Number.parseFloat(String(p.valor_total ?? 0)), 0)
   const ticket_medio = total_pedidos > 0 ? receita_total / total_pedidos : 0
   const entregas = pedidos.filter((p) => p.tipo === 'entrega').length
   const retiradas = pedidos.filter((p) => p.tipo === 'retirada').length
@@ -61,8 +61,8 @@ export async function GET(req: Request) {
   const a_receber = pedidos.reduce((s, p) => {
     const pg = pagByPedido.get(p.id)
     if (pg?.pago) return s
-    const total = Number.Number.parseFloat(String(p.valor_total ?? 0))
-    const pago = pg?.parcial ? Number.Number.parseFloat(String(pg.valor_pago ?? 0)) : 0
+    const total = Number.parseFloat(String(p.valor_total ?? 0))
+    const pago = pg?.parcial ? Number.parseFloat(String(pg.valor_pago ?? 0)) : 0
     return s + (total - pago)
   }, 0)
 
@@ -70,7 +70,7 @@ export async function GET(req: Request) {
   for (const item of itensList) {
     const cur = prodMap.get(item.nome_produto) ?? { total: 0, receita: 0 }
     cur.total += item.quantidade
-    cur.receita += Number.Number.parseFloat(String(item.subtotal ?? 0))
+    cur.receita += Number.parseFloat(String(item.subtotal ?? 0))
     prodMap.set(item.nome_produto, cur)
   }
   const top_produtos = [...prodMap.entries()]
@@ -83,7 +83,7 @@ export async function GET(req: Request) {
     const dia = (p.created_at as string).slice(0, 10)
     const cur = diaMap.get(dia) ?? { pedidos: 0, receita: 0 }
     cur.pedidos++
-    cur.receita += Number.Number.parseFloat(String(p.valor_total ?? 0))
+    cur.receita += Number.parseFloat(String(p.valor_total ?? 0))
     diaMap.set(dia, cur)
   }
   const por_dia = [...diaMap.entries()]
@@ -104,7 +104,7 @@ export async function GET(req: Request) {
     if (!p.cliente_id) continue
     const cur = clienteMap.get(p.cliente_id) ?? { nome: p.cliente_nome, pedidos: 0, receita: 0 }
     cur.pedidos++
-    cur.receita += Number.Number.parseFloat(String(p.valor_total ?? 0))
+    cur.receita += Number.parseFloat(String(p.valor_total ?? 0))
     clienteMap.set(p.cliente_id, cur)
   }
   const top_clientes = [...clienteMap.entries()]
@@ -120,7 +120,7 @@ export async function GET(req: Request) {
     const vid = p.vendedor_id ?? 'sem_vendedor'
     const cur = vMap.get(vid) ?? { nome: vNames.get(vid) ?? 'Sem Vendedor', pedidos: 0, receita: 0 }
     cur.pedidos++
-    cur.receita += Number.Number.parseFloat(String(p.valor_total ?? 0))
+    cur.receita += Number.parseFloat(String(p.valor_total ?? 0))
     vMap.set(vid, cur)
   }
   const top_vendedores = [...vMap.entries()]
