@@ -19,5 +19,12 @@ export async function POST(
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
-  return NextResponse.json({ data: criada }, { status: 201 })
+
+  const v = criada.vendedor as any
+  const vnome = v ? (Array.isArray(v) ? v[0]?.nome : v.nome) : null
+  
+  const responseData = { ...criada, vendedor_nome: vnome }
+  delete responseData.vendedor
+
+  return NextResponse.json({ data: responseData }, { status: 201 })
 }

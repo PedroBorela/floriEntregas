@@ -34,7 +34,7 @@ export default function DatasEspeciais({ clienteId, datas, onChange }: Props) {
   useEffect(() => {
     fetch('/api/vendedores')
       .then((r) => r.json())
-      .then((d: Vendedor[]) => setVendedores(Array.isArray(d) ? d.filter((v) => v.ativo) : []))
+      .then((d: { vendedores?: Vendedor[] }) => setVendedores(Array.isArray(d.vendedores) ? d.vendedores.filter((v) => v.ativo) : []))
       .catch(() => {})
   }, [])
 

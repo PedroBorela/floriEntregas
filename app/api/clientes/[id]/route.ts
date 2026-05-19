@@ -32,12 +32,23 @@ export async function GET(
 
   const { data, error } = await supabase
     .from('clientes')
-    .select('*, cliente_datas(*), cliente_notas(*), enderecos(id, apelido, logradouro, numero, bairro, cidade, estado, cep, referencia, latitude, longitude), pedidos(id, codigo, status, valor_total, data_entrega, created_at)')
+    .select('*, cliente_datas(*, vendedor:vendedores(nome)), cliente_notas(*), enderecos(id, apelido, logradouro, numero, bairro, cidade, estado, cep, referencia, latitude, longitude), pedidos(id, codigo, status, valor_total, data_entrega, created_at)')
     .eq('id', id)
     .order('created_at', { referencedTable: 'pedidos', ascending: false })
     .single()
 
   if (error || !data) return NextResponse.json({ error: 'Cliente não encontrado' }, { status: 404 })
+
+  if (data.cliente_datas) {
+    data.cliente_datas = data.cliente_datas.map((d: any) => {
+      const v = d.vendedor
+      const vnome = v ? (Array.isArray(v) ? v[0]?.nome : v.nome) : null
+      const dMapped = { ...d, vendedor_nome: vnome }
+      delete dMapped.vendedor
+      return dMapped
+    })
+  }
+
   return NextResponse.json({ cliente: data })
 }
 

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
 import { supabase } from '@/lib/supabase'
 
 export async function GET() {
@@ -39,3 +40,4 @@ export async function GET() {
       .map(([id, v]) => ({ id, ...v }))
   )
 }
+

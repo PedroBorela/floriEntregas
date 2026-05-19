@@ -91,32 +91,33 @@ export default function DashboardPage() {
     }
     setErro(null)
 
+    const t = Date.now()
     Promise.all([
-      fetch('/api/dashboard/pulso').then(async (r) => {
+      fetch(`/api/dashboard/pulso?t=${t}`).then(async (r) => {
         if (!r.ok) throw new Error(await r.text().catch(() => `HTTP ${r.status}`))
         return r.json() as Promise<PulsoData>
       }),
-      fetch('/api/dashboard/pedidos-hoje').then(async (r) => {
+      fetch(`/api/dashboard/pedidos-hoje?t=${t}`).then(async (r) => {
         if (!r.ok) throw new Error(await r.text().catch(() => `HTTP ${r.status}`))
         return r.json() as Promise<PedidoHoje[]>
       }),
-      fetch('/api/dashboard/kpis').then(async (r) => {
+      fetch(`/api/dashboard/kpis?t=${t}`).then(async (r) => {
         if (!r.ok) throw new Error(await r.text().catch(() => `HTTP ${r.status}`))
         return r.json() as Promise<KpisData>
       }),
-      fetch('/api/dashboard/devedores').then(async (r) => {
+      fetch(`/api/dashboard/devedores?t=${t}`).then(async (r) => {
         if (!r.ok) throw new Error(await r.text().catch(() => `HTTP ${r.status}`))
         return r.json() as Promise<DevedoresData>
       }),
-      fetch('/api/dashboard/vendedores-hoje').then(async (r) => {
+      fetch(`/api/dashboard/vendedores-hoje?t=${t}`).then(async (r) => {
         if (!r.ok) throw new Error(await r.text().catch(() => `HTTP ${r.status}`))
         return r.json() as Promise<VendedorHoje[]>
       }),
-      fetch('/api/analytics/datas-proximas').then(async (r) => {
+      fetch(`/api/analytics/datas-proximas?t=${t}`).then(async (r) => {
         if (!r.ok) throw new Error(await r.text().catch(() => `HTTP ${r.status}`))
         return r.json() as Promise<DataProxima[]>
       }),
-      fetch('/api/dashboard/meta-datas').then(async (r) => {
+      fetch(`/api/dashboard/meta-datas?t=${t}`).then(async (r) => {
         if (!r.ok) throw new Error(await r.text().catch(() => `HTTP ${r.status}`))
         return r.json() as Promise<MetaDatasData>
       }),

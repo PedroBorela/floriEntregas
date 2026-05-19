@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
+export const dynamic = 'force-dynamic'
+
 function diasAte(iso: string): number {
   const hoje = new Date()
   hoje.setHours(0, 0, 0, 0)

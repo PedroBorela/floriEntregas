@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
 import { supabase } from '@/lib/supabase'
 
 const STATUSES_ABERTOS = ['pendente', 'em_preparo', 'saiu_entrega']
